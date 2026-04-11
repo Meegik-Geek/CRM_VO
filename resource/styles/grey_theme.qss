@@ -1,0 +1,156 @@
+QMainWindow {
+    background-color: #121212;
+}
+
+QDialog {
+    background-color: #1F1F1F;
+}
+
+QWidget#rightPanel {
+    background-color: #1F1F1F;
+}
+
+QLabel {
+    color: #FFFFFF;
+}
+
+QLabel#adminTitleLabel {
+    color: #FFFFFF;
+}
+
+QLabel#errorLabel {
+    color: #EF5350;
+}
+
+QPushButton#iconButton:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+QPushButton#iconButton:pressed {
+    background-color: rgba(255, 255, 255, 0.15);
+}
+
+QPushButton#drukButton {
+    background-color: #424242;
+    color: #FFFFFF;
+}
+
+QPushButton#drukButton:hover {
+    background-color: #616161;
+}
+
+QPushButton#drukButton:pressed {
+    background-color: #757575;
+}
+
+QLineEdit {
+    background-color: #2C2C2C;
+    color: #FFFFFF;
+    border-color: #4A4A4A;
+}
+
+QLineEdit#usernameInput,
+QLineEdit#passwordInput,
+QLineEdit#inputField {
+    background-color: #2C2C2C;
+    color: #FFFFFF;
+    border-color: #4A4A4A;
+}
+
+QLineEdit:focus {
+    background-color: #2C2C2C;
+}
+
+QComboBox {
+    background-color: #2C2C2C;
+    color: #FFFFFF;
+    border-color: #4A4A4A;
+}
+
+QTextEdit {
+    background-color: #2C2C2C;
+    color: #FFFFFF;
+    border-color: #4A4A4A;
+}
+
+QListWidget#tableList {
+    background-color: #1F1F1F;
+    color: #FFFFFF;
+}
+
+QListWidget#tableList::item {
+    color: #FFFFFF;
+}
+
+QListWidget#tableList::item:selected {
+    background-color: #2979FF;
+    color: #FFFFFF;
+    border-left-color: #1565C0;
+}
+
+QListWidget#tableList::item:hover {
+    background-color: #2C2C2C;
+    color: #FFFFFF;
+}
+
+QListWidget#tableList::item[role="section"] {
+    background-color: #2C2C2C;
+    color: #B0B0B0;
+}
+
+QListWidget#navList {
+    background-color: #1F1F1F;
+    color: #FFFFFF;
+}
+
+QListWidget#navList::item {
+    color: #FFFFFF;
+}
+
+QListWidget#navList::item:selected {
+    background-color: #2979FF;
+    color: #FFFFFF;
+    border-left-color: #1565C0;
+}
+
+QListWidget#navList::item:hover {
+    background-color: #2C2C2C;
+    color: #FFFFFF;
+}
+
+QListWidget#navList::item[role="section"] {
+    background-color: #2C2C2C;
+    color: #B0B0B0;
+}
+
+QTableWidget {
+    background-color: #2C2C2C;
+    color: #FFFFFF;
+    border-color: #4A4A4A;
+}
+
+QTableWidget::item {
+    color: #FFFFFF;
+}
+
+QTableWidget::item:selected {
+    background-color: #2979FF;
+    color: #FFFFFF;
+}
+
+QHeaderView::section {
+    background-color: #2C2C2C;
+    color: #B0B0B0;
+}
+
+QGroupBox#groupBox {
+    border-color: #4A4A4A;
+}
+
+QGroupBox#groupBox::title {
+    color: #FFFFFF;
+}
+
+QSplitter::handle {
+    background-color: #4A4A4A;
+}

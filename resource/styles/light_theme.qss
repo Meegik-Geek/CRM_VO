@@ -1,0 +1,135 @@
+QMainWindow {
+    background-color: #F5F7FA;
+}
+
+QDialog {
+    background-color: #FFFFFF;
+}
+
+QWidget#rightPanel {
+    background-color: #FFFFFF;
+}
+
+QLabel {
+    color: #1E1E1E;
+}
+
+QLabel#adminTitleLabel {
+    color: #1E1E1E;
+}
+
+QLabel#errorLabel {
+    color: #E53935;
+}
+
+QLineEdit {
+    background-color: #FFFFFF;
+    color: #1E1E1E;
+    border-color: #B0B0B0;
+}
+
+QLineEdit#usernameInput,
+QLineEdit#passwordInput,
+QLineEdit#inputField {
+    background-color: #FFFFFF;
+    color: #1E1E1E;
+    border-color: #B0B0B0;
+}
+
+QLineEdit:focus {
+    background-color: #FFFFFF;
+}
+
+QComboBox {
+    background-color: #FFFFFF;
+    color: #1E1E1E;
+    border-color: #B0B0B0;
+}
+
+QTextEdit {
+    background-color: #FFFFFF;
+    color: #1E1E1E;
+    border-color: #B0B0B0;
+}
+
+QListWidget#tableList {
+    background-color: #FFFFFF;
+    color: #1E1E1E;
+}
+
+QListWidget#tableList::item {
+    color: #1E1E1E;
+}
+
+QListWidget#tableList::item:selected {
+    background-color: #2979FF;
+    color: #FFFFFF;
+    border-left-color: #1565C0;
+}
+
+QListWidget#tableList::item:hover {
+    background-color: #E3F2FD;
+    color: #1E1E1E;
+}
+
+QListWidget#tableList::item[role="section"] {
+    background-color: #F0F0F0;
+    color: #606770;
+}
+
+QListWidget#navList {
+    background-color: #FFFFFF;
+    color: #1E1E1E;
+}
+
+QListWidget#navList::item {
+    color: #1E1E1E;
+}
+
+QListWidget#navList::item:selected {
+    background-color: #2979FF;
+    color: #FFFFFF;
+    border-left-color: #1565C0;
+}
+
+QListWidget#navList::item:hover {
+    background-color: #E3F2FD;
+    color: #1E1E1E;
+}
+
+QListWidget#navList::item[role="section"] {
+    background-color: #F0F0F0;
+    color: #606770;
+}
+
+QTableWidget {
+    background-color: #FFFFFF;
+    color: #1E1E1E;
+    border-color: #B0B0B0;
+}
+
+QTableWidget::item {
+    color: #1E1E1E;
+}
+
+QTableWidget::item:selected {
+    background-color: #2979FF;
+    color: #FFFFFF;
+}
+
+QHeaderView::section {
+    background-color: #F0F0F0;
+    color: #606770;
+}
+
+QGroupBox#groupBox {
+    border-color: #B0B0B0;
+}
+
+QGroupBox#groupBox::title {
+    color: #1E1E1E;
+}
+
+QSplitter::handle {
+    background-color: #B0B0B0;
+}

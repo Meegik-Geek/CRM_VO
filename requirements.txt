@@ -1,0 +1,9 @@
+PyQt5
+psycopg2-binary
+pandas
+docxtpl
+openpyxl
+jinja2
+numpy
+python-dotenv
+requests

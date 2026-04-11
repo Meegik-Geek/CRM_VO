@@ -1,0 +1,117 @@
+QLabel {
+    font-size: 18px;
+}
+QPushButton#searchButton {
+    font-size: 17px;
+    height: 17px;
+} 
+QPushButton#clearButton {
+    font-size: 17px;
+    height: 17px;
+}
+QPushButton#cancelButton {
+    font-size: 17px;
+    height: 17px;
+}
+QLabel#titleLabel {
+    font-size: 25px;
+}
+
+QLabel#adminTitleLabel {
+    font-size: 24px;
+}
+
+QLabel#errorLabel {
+    font-size: 16px;
+}
+
+QPushButton {
+    font-size: 18px;
+    height: 28px;
+}
+
+QPushButton#logButton {
+    font-size: 17px;
+    height: 32px;
+}
+
+QPushButton#iconButton {
+    height: 32px;
+}
+
+QPushButton#loginButton {
+    font-size: 18px;
+    height: 40px;
+}
+
+QPushButton#drukButton {
+    font-size: 18px;
+    height: 40px;
+}
+
+QPushButton#errorButton {
+    font-size: 18px;
+    height: 40px;
+}
+
+QLineEdit {
+    font-size: 18px;
+    height: 24px;
+}
+
+QComboBox {
+    font-size: 18px;
+    height: 19px;
+}
+
+QTextEdit {
+    font-size: 17px;
+}
+
+QListWidget#tableList {
+    font-size: 17px;
+}
+
+QListWidget#tableList::item {
+    padding: 12px 16px;
+}
+
+QListWidget#tableList::item[role="section"] {
+    font-size: 17px;
+    padding: 10px;
+}
+
+QListWidget#navList {
+    font-size: 17px;
+}
+
+QListWidget#navList::item {
+    padding: 12px 16px;
+}
+
+QListWidget#navList::item[role="section"] {
+    font-size: 17px;
+    padding: 10px;
+}
+
+QTableWidget {
+    font-size: 17px;
+}
+
+
+
+QHeaderView::section {
+    font-size: 17px;
+    padding: 8px;
+}
+
+QGroupBox#groupBox {
+    font-size: 16px;
+}
+
+QSplitter::handle {
+    width: 6px;
+}
+#message_label {
+    font-size: 19px;
+}

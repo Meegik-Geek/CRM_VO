@@ -1,0 +1,15 @@
+.env
+__pycache__/
+*.pyc
+venv/
+env/
+.idea/
+.vscode/
+temp_update.zip
+temp_downloaded_update.zip
+temp_update_extracted/
+build/
+dist/
+*.spec
+.version.txt
+updates/

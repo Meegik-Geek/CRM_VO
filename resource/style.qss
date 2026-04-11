@@ -1,0 +1,90 @@
+/* Загальні налаштування */
+QMainWindow {
+    background-color: #FFFFFF; /* Білий фон */
+}
+
+QPushButton {
+    background-color: #00A8E8;  /* Синій фон для кнопок */
+    color: #FFFFFF;              /* Білий текст на кнопках */
+    font-size: 20px;
+    border: 2px solid #00A8E8;   /* Синя рамка */
+    border-radius: 10px;
+    padding: 10px;
+   
+}
+
+QPushButton:hover {
+    background-color: #007EA7;  /* Темніший синій при наведенні */
+    border: 2px solid #007EA7;
+   
+}
+
+QPushButton:pressed {
+    background-color: #005082;  /* Ще темніший синій при натисканні */
+    border: 2px solid #005082;
+}
+
+QPushButton#greenButton {
+    background-color: #32CD32;  /* Зелений для кнопки */
+    border: 2px solid #32CD32;
+}
+
+QPushButton#greenButton:hover {
+    background-color: #2E8B57;  /* Темно-зелений при наведенні */
+}
+
+QPushButton#greenButton:pressed {
+    background-color: #228B22;  /* Темніший зелений при натисканні */
+}
+
+/* Стиль для текстових повідомлень або інфо */
+QLabel {
+    color: #121212;             /* Темно-синій текст */
+    font-size: 15px;
+}
+QLineEdit {
+    font-size: 14px;
+    height: 30px;
+}
+.navButton {
+    
+    font-size: 12px;
+    
+}
+.drukButton {
+    height: 35px;
+    font-size: 14px;
+    background-color: #3895e0; 
+    color: white;
+    
+}
+.logButton {
+    font-size: 13px; 
+    padding: 0px;
+    border: 0px;
+    background-color: #db7704; 
+}
+.logButton:hover {
+    border: 0px;
+    background-color: #ad5e02; 
+}
+QListWidget {
+                background-color: #f2f2f2;
+                border: none;
+                font-size: 16px;
+                color: #333;
+            }
+QListWidget::item {
+                padding: 10px;
+                border: none;
+            }
+QListWidget::item:selected {
+                background-color: #0078d7;
+                color: white;
+                border-right: 5px solid #004080;
+                font-weight: bold;
+            }
+QListWidget::item:hover {
+                background-color: #e6f2ff;
+                color: #333;
+            }
