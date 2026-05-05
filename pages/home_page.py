@@ -89,6 +89,13 @@ class HomePage(QMainWindow):
         self.login_button = QPushButton("Вхід", self)
         self.toggle_size_button = QPushButton(self)
         self.toggle_theme_button = QPushButton(self)
+        
+        # Поточна версія
+        self.version_label = QLabel(self)
+        self.version_label.setObjectName("versionLabel")
+        self.version_label.setStyleSheet("color: #7f8c8d; font-size: 10px;")
+        self.load_version()
+        
         self.setup_top_buttons()
 
     def setup_buttons(self):
@@ -136,6 +143,25 @@ class HomePage(QMainWindow):
             subprocess.Popen(args)
             QApplication.quit()
 
+    def show_login_dialog(self):
+        login_dialog = LoginDialog(self)
+        if login_dialog.exec_() == QDialog.Accepted:
+            self.input_admin_page = InputAdminPage()
+            self.input_admin_page.show()
+
+    def load_version(self):
+        try:
+            version_path = "version.txt"
+            if os.path.exists(version_path):
+                with open(version_path, "r", encoding="utf-8") as f:
+                    version = f.read().strip()
+                self.version_label.setText(f"v{version}")
+            else:
+                self.version_label.setText("v1.0.0")
+        except Exception as e:
+            print(f"Помилка завантаження версії: {e}")
+            self.version_label.setText("v1.0.0")
+
     def setup_top_buttons(self):
         # Кнопка логіна
         self.login_button.setObjectName("logButton")
@@ -159,9 +185,11 @@ class HomePage(QMainWindow):
         self.update_theme_button_icon()
         self.toggle_theme_button.clicked.connect(self.toggle_theme)
 
-        # Позиціонування верхніх кнопок
-        def update_top_buttons_position():
+        def update_positions():
             window_width = self.width()
+            window_height = self.height()
+            
+            # Позиціонування верхніх кнопок
             spacing = 10
             button_width = 30
             login_width = self.login_button.width()
@@ -171,13 +199,17 @@ class HomePage(QMainWindow):
             self.login_button.move(start_x, y)
             self.toggle_size_button.move(start_x + login_width + spacing, y)
             self.toggle_theme_button.move(start_x + login_width + 2 * spacing + button_width, y)
+            
+            # Позиціонування версії (знизу справа)
+            self.version_label.adjustSize()
+            self.version_label.move(window_width - self.version_label.width() - 10, window_height - self.version_label.height() - 5)
 
         original_resize_event = self.resizeEvent
         def resize_event(event):
             original_resize_event(event)
-            update_top_buttons_position()
+            update_positions()
         self.resizeEvent = resize_event
-        update_top_buttons_position()
+        update_positions()
 
     def update_size_button_icon(self):
         icon_path = "resource/eye.png" if not self.is_large_size else "resource/eye_off.png"
