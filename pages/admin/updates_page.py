@@ -97,11 +97,13 @@ class UpdatesPage(QWidget):
         info_layout.setSpacing(8)
 
         # Поточна версія
-        local_ver = '1.0.0'
+        local_ver = '1.0.0-0'
         try:
             if os.path.exists('version.txt'):
                 with open('version.txt', 'r') as f:
                     local_ver = f.read().strip()
+                if '-' not in local_ver:
+                    local_ver += "-0"
         except Exception:
             pass
 
@@ -154,9 +156,13 @@ class UpdatesPage(QWidget):
         self.db_path_lbl = QLabel(f"Шлях: <b>{get_setting('update_path', 'Немає')}</b>")
         self.db_path_lbl.setTextFormat(Qt.RichText)
         
+        status_layout.addWidget(self.db_version_lbl)
+        status_layout.addWidget(self.db_method_lbl)
         status_layout.addWidget(self.db_path_lbl)
 
         self.btn_check_access = QPushButton("Перевірити доступ до шляху")
+        self.btn_check_access.setObjectName("greenButton")
+        self.btn_check_access.setMinimumHeight(30)
         self.btn_check_access.setCursor(QCursor(Qt.PointingHandCursor))
         self.btn_check_access.clicked.connect(self.check_access)
         status_layout.addWidget(self.btn_check_access, alignment=Qt.AlignLeft)
@@ -227,14 +233,15 @@ class UpdatesPage(QWidget):
             resp = requests.get(f"https://api.github.com/repos/{github_repo}/releases/latest", timeout=5)
             if resp.status_code == 200:
                 data = resp.json()
-                self.latest_github_version = data.get("tag_name", "1.0.0").replace('v', '') + "-0"
+                tag = data.get("tag_name", "1.0.0").replace('v', '')
+                self.latest_github_version = tag + "-0"
                 for asset in data.get('assets', []):
                     if asset['name'].endswith('.zip'):
                         self.latest_github_url = asset['browser_download_url']
                         break
                 if not self.latest_github_url:
                     self.latest_github_url = data.get('zipball_url')
-                self.github_status_lbl.setText(f"Остання версія на GitHub: <b>{self.latest_github_version}</b>")
+                self.github_status_lbl.setText(f"Остання версія на GitHub: <b>{tag}</b>")
             else:
                 self.github_status_lbl.setText(f"Не вдалося перевірити GitHub (Status: {resp.status_code})")
         except Exception as e:
