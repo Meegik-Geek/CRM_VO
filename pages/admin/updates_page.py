@@ -261,6 +261,7 @@ class UpdatesPage(QWidget):
         tag = data['tag']
         gh_ver = tag + "-0"
         self._info_update_url = data['url']
+        self._info_update_version = gh_ver
 
         # Порівнюємо з локальною версією
         local_ver = '1.0.0-0'
@@ -301,7 +302,7 @@ class UpdatesPage(QWidget):
         args = [updater]
         if updater == sys.executable:
             args.append("updater.py")
-        args.extend(["INTERNET", self._info_update_url])
+        args.extend(["INTERNET", self._info_update_url, self._info_update_version])
         subprocess.Popen(args)
         QApplication.quit()
 

@@ -128,6 +128,7 @@ class HomePage(QMainWindow):
         self.update_banner_label.setText(f"Є нова версія програми ({version}). Зверніться до локального адміністратора.")
         self.update_banner_btn.hide()
         self.update_banner.show()
+        self.update_version = version
 
     def show_admin_update(self, version, method, path):
         source = "Локальна мережа" if method == "LOCAL" else "Інтернет"
@@ -141,6 +142,7 @@ class HomePage(QMainWindow):
         # Зберігаємо параметри для апдейтера
         self.update_method = method
         self.update_path = path
+        self.update_version = version
 
     def run_updater(self):
         if hasattr(self, 'update_method') and hasattr(self, 'update_path'):
@@ -152,7 +154,7 @@ class HomePage(QMainWindow):
             if updater_path == sys.executable:
                 args.append("updater.py")
                 
-            args.extend([self.update_method, self.update_path])
+            args.extend([self.update_method, self.update_path, self.update_version])
             subprocess.Popen(args)
             QApplication.quit()
 

@@ -17,11 +17,12 @@ class UpdateWorker(QThread):
     status = pyqtSignal(str)
     finished = pyqtSignal(bool, str)
 
-    def __init__(self, method, path, target_dir):
+    def __init__(self, method, path, target_dir, version=None):
         super().__init__()
         self.method = method
         self.path = path
         self.target_dir = target_dir
+        self.version = version
 
     def run(self):
         try:
@@ -86,6 +87,14 @@ class UpdateWorker(QThread):
             shutil.rmtree(temp_extract_dir, ignore_errors=True)
             if os.path.exists("temp_downloaded_update.zip"):
                 os.remove("temp_downloaded_update.zip")
+
+            # Оновлення файлу version.txt
+            if self.version:
+                try:
+                    with open(os.path.join(self.target_dir, "version.txt"), "w", encoding="utf-8") as f:
+                        f.write(self.version)
+                except Exception:
+                    pass
 
             self.status.emit("Оновлення завершено!")
             time.sleep(1)
@@ -186,7 +195,9 @@ class UpdateUI(QWidget):
         layout.addWidget(self.progress_bar)
 
     def start_update(self):
-        self.worker = UpdateWorker(self.method, self.path, os.getcwd())
+        # Отримуємо версію з аргументів командного рядка (якщо є)
+        version = sys.argv[3] if len(sys.argv) >= 4 else None
+        self.worker = UpdateWorker(self.method, self.path, os.getcwd(), version)
         self.worker.progress.connect(self.progress_bar.setValue)
         self.worker.status.connect(self.status_label.setText)
         self.worker.finished.connect(self.on_finished)
