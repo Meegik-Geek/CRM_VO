@@ -11,5 +11,4 @@ temp_update_extracted/
 build/
 dist/
 *.spec
-.version.txt
 updates/
