@@ -1,14 +1,52 @@
 import os
+import sys
 import shutil
+import subprocess
 import requests
 import json
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QPushButton, QLabel, QFileDialog, 
-    QMessageBox, QProgressBar, QHBoxLayout, QGroupBox, QApplication
+    QMessageBox, QProgressBar, QHBoxLayout, QGroupBox, QApplication,
+    QTextEdit, QScrollArea
 )
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
+from PyQt5.QtGui import QCursor
 from db.connect_db import get_setting, setup_database
 from utils.logger import log_error, log_info
+
+
+class GitHubInfoThread(QThread):
+    result = pyqtSignal(dict)
+
+    def __init__(self, repo):
+        super().__init__()
+        self.repo = repo
+
+    def run(self):
+        try:
+            resp = requests.get(
+                f"https://api.github.com/repos/{self.repo}/releases/latest",
+                timeout=5
+            )
+            if resp.status_code == 200:
+                data = resp.json()
+                url = None
+                for asset in data.get('assets', []):
+                    if asset['name'].endswith('.zip'):
+                        url = asset['browser_download_url']
+                        break
+                if not url:
+                    url = data.get('zipball_url', '')
+                self.result.emit({
+                    'ok': True,
+                    'tag': data.get('tag_name', '').replace('v', ''),
+                    'body': data.get('body', 'Опис відсутній.'),
+                    'url': url
+                })
+            else:
+                self.result.emit({'ok': False, 'error': f'HTTP {resp.status_code}'})
+        except Exception as e:
+            self.result.emit({'ok': False, 'error': str(e)})
 
 class DownloadThread(QThread):
     progress = pyqtSignal(int)
@@ -51,18 +89,78 @@ class UpdatesPage(QWidget):
     def init_ui(self):
         layout = QVBoxLayout(self)
         layout.setSpacing(20)
+        layout.addStretch()
+
+        # 0. ІНФОРМАЦІЯ
+        info_group = QGroupBox("Інформація")
+        info_layout = QVBoxLayout(info_group)
+        info_layout.setSpacing(8)
+
+        # Поточна версія
+        local_ver = '1.0.0'
+        try:
+            if os.path.exists('version.txt'):
+                with open('version.txt', 'r') as f:
+                    local_ver = f.read().strip()
+        except Exception:
+            pass
+
+        self.info_local_lbl = QLabel(f"Поточна версія програми: <b>v{local_ver}</b>")
+        self.info_local_lbl.setTextFormat(Qt.RichText)
+        info_layout.addWidget(self.info_local_lbl)
+
+        self.info_github_lbl = QLabel("Перевірка GitHub...")
+        info_layout.addWidget(self.info_github_lbl)
+
+        # Блок нового релізу (захований за замовчуванням)
+        self.info_release_widget = QWidget()
+        release_layout = QVBoxLayout(self.info_release_widget)
+        release_layout.setContentsMargins(0, 0, 0, 0)
+        release_layout.setSpacing(10)
+
+        self.info_release_title = QLabel()
+        self.info_release_title.setTextFormat(Qt.RichText)
+        release_layout.addWidget(self.info_release_title)
+
+        # Тільки опис у вигляді панелі
+        self.description_group = QGroupBox("Опис оновлення")
+        desc_layout = QVBoxLayout(self.description_group)
+        self.info_release_body = QLabel()
+        self.info_release_body.setWordWrap(True)
+        self.info_release_body.setAlignment(Qt.AlignTop | Qt.AlignLeft)
+        desc_layout.addWidget(self.info_release_body)
+        release_layout.addWidget(self.description_group)
+
+        self.btn_info_update = QPushButton("Оновити та перезавантажити")
+        self.btn_info_update.setObjectName("greenButton")
+        self.btn_info_update.setMinimumHeight(36)
+        self.btn_info_update.setCursor(QCursor(Qt.PointingHandCursor))
+        self.btn_info_update.setToolTip("Програма закриється! Збережіть внесені дані!")
+        self.btn_info_update.clicked.connect(self._run_info_updater)
+        release_layout.addWidget(self.btn_info_update, alignment=Qt.AlignLeft)
+
+        self.info_release_widget.hide()
+        info_layout.addWidget(self.info_release_widget)
+        layout.addWidget(info_group)
 
         # 1. СТАТУС ВЕРСІЙ В БД
         status_group = QGroupBox("Поточний стан сервера")
         status_layout = QVBoxLayout(status_group)
         
-        self.db_version_lbl = QLabel(f"Затверджена версія (роздається клієнтам): {get_setting('admin_approved_version', '1.0.0-0')}")
-        self.db_method_lbl = QLabel(f"Метод доставки: {get_setting('update_delivery_method', 'NONE')}")
-        self.db_path_lbl = QLabel(f"Шлях: {get_setting('update_path', 'Немає')}")
+        self.db_version_lbl = QLabel(f"Затверджена версія (роздається клієнтам): <b>{get_setting('admin_approved_version', '1.0.0-0')}  </b>")
+        self.db_version_lbl.setTextFormat(Qt.RichText)
+        self.db_method_lbl = QLabel(f"Метод доставки: <b>{get_setting('update_delivery_method', 'NONE')}</b>")
+        self.db_method_lbl.setTextFormat(Qt.RichText)
+        self.db_path_lbl = QLabel(f"Шлях: <b>{get_setting('update_path', 'Немає')}</b>")
+        self.db_path_lbl.setTextFormat(Qt.RichText)
         
-        status_layout.addWidget(self.db_version_lbl)
-        status_layout.addWidget(self.db_method_lbl)
         status_layout.addWidget(self.db_path_lbl)
+
+        self.btn_check_access = QPushButton("Перевірити доступ до шляху")
+        self.btn_check_access.setCursor(QCursor(Qt.PointingHandCursor))
+        self.btn_check_access.clicked.connect(self.check_access)
+        status_layout.addWidget(self.btn_check_access, alignment=Qt.AlignLeft)
+        
         layout.addWidget(status_group)
 
         # 2. ОНОВЛЕННЯ З GITHUB
@@ -115,29 +213,122 @@ class UpdatesPage(QWidget):
         github_repo = os.getenv('GITHUB_REPO', '')
         if not github_repo:
             self.github_status_lbl.setText("Помилка: GITHUB_REPO не вказано в .env")
+            self.info_github_lbl.setText("Статус GitHub: GITHUB_REPO не налаштовано")
+            self.info_github_lbl.setStyleSheet("color: #e74c3c;")
             return
-            
+
+        # Запуск потоку для розділу Інформація
+        self._info_thread = GitHubInfoThread(github_repo)
+        self._info_thread.result.connect(self._on_info_received)
+        self._info_thread.start()
+
+        # Запуск потоку для розділу GitHub
         try:
             resp = requests.get(f"https://api.github.com/repos/{github_repo}/releases/latest", timeout=5)
             if resp.status_code == 200:
                 data = resp.json()
                 self.latest_github_version = data.get("tag_name", "1.0.0").replace('v', '') + "-0"
-                
-                # Знайти посилання на zip
                 for asset in data.get('assets', []):
                     if asset['name'].endswith('.zip'):
                         self.latest_github_url = asset['browser_download_url']
                         break
-                
                 if not self.latest_github_url:
-                    # Посилання на вихідний код
                     self.latest_github_url = data.get('zipball_url')
-                
-                self.github_status_lbl.setText(f"Остання версія на GitHub: {self.latest_github_version}")
+                self.github_status_lbl.setText(f"Остання версія на GitHub: <b>{self.latest_github_version}</b>")
             else:
                 self.github_status_lbl.setText(f"Не вдалося перевірити GitHub (Status: {resp.status_code})")
         except Exception as e:
-            self.github_status_lbl.setText(f"Помилка з'єднання: {e}")
+            self.github_status_lbl.setText(f"Помилка з'єднання: <b>Немає з'єднання з сервісом</b>")
+
+    def _on_info_received(self, data):
+        if not data.get('ok'):
+            err = data.get('error', '')
+            self.info_github_lbl.setTextFormat(Qt.RichText)
+            self.info_github_lbl.setText(f"Статус GitHub: <b>Помилка з'єднання</b>")
+            return
+
+        self.info_github_lbl.setTextFormat(Qt.RichText)
+        self.info_github_lbl.setText("Статус GitHub: <b>Підключено</b>")
+        self.info_github_lbl.setStyleSheet("")
+
+        tag = data['tag']
+        gh_ver = tag + "-0"
+        self._info_update_url = data['url']
+
+        # Порівнюємо з локальною версією
+        local_ver = '1.0.0-0'
+        try:
+            if os.path.exists('version.txt'):
+                with open('version.txt', 'r') as f:
+                    local_ver = f.read().strip()
+            if '-' not in local_ver:
+                local_ver = local_ver + '-0'
+        except Exception:
+            pass
+
+        def ver_tuple(v):
+            base, p = v.split('-') if '-' in v else (v, '0')
+            return tuple(int(x) for x in base.split('.')) + (int(p),)
+
+        if ver_tuple(gh_ver) > ver_tuple(local_ver):
+            self.info_release_title.setText(f"Знайдено нову версію: <b>v{tag}</b>")
+            self.info_release_body.setText(data['body'])
+            self.info_release_widget.show()
+        else:
+            lbl = QLabel("<b>У вас встановлена остання версія.</b>")
+            lbl.setTextFormat(Qt.RichText)
+            self.info_release_widget.parent().layout().addWidget(lbl)
+
+    def _run_info_updater(self):
+        if not hasattr(self, '_info_update_url') or not self._info_update_url:
+            QMessageBox.warning(self, "Увага", "Посилання на архів не знайдено.")
+            return
+        reply = QMessageBox.question(
+            self, "Підтвердження",
+            "Програма закриється, виконається оновлення та автоматично перезапускається.\nЗбережіть внесені дані!\n\nРозпочати?",
+            QMessageBox.Yes | QMessageBox.No
+        )
+        if reply != QMessageBox.Yes:
+            return
+        updater = "updater.exe" if os.path.exists("updater.exe") else sys.executable
+        args = [updater]
+        if updater == sys.executable:
+            args.append("updater.py")
+        args.extend(["INTERNET", self._info_update_url])
+        subprocess.Popen(args)
+        QApplication.quit()
+
+    def check_access(self):
+        method = get_setting('update_delivery_method', 'NONE')
+        path = get_setting('update_path', '')
+        
+        if method == 'NONE':
+            QMessageBox.information(self, "Перевірка", "Метод оновлення не встановлено.")
+            return
+        
+        if method == 'INTERNET':
+            try:
+                resp = requests.head(path, timeout=5)
+                if resp.status_code == 200:
+                    QMessageBox.information(self, "Успіх", "Посилання в Інтернеті доступне (HTTP 200).")
+                else:
+                    QMessageBox.warning(self, "Увага", f"Сервер повернув помилку: {resp.status_code}")
+            except Exception as e:
+                QMessageBox.critical(self, "Помилка", f"Не вдалося перевірити посилання:\n{e}")
+        
+        else: # LOCAL
+            if not path:
+                QMessageBox.warning(self, "Помилка", "Шлях до локального оновлення не вказано.")
+                return
+            
+            if os.path.exists(path):
+                QMessageBox.information(self, "Успіх", f"Файл знайдено за шляхом:\n{path}\n\nКлієнти зможуть його скачати.")
+            else:
+                dir_path = os.path.dirname(path)
+                if os.path.exists(dir_path):
+                     QMessageBox.warning(self, "Увага", f"Папка доступна, але ФАЙЛ 'update.zip' НЕ ЗНАЙДЕНО за шляхом:\n{path}")
+                else:
+                     QMessageBox.critical(self, "Помилка", f"ШЛЯХ НЕДОСТУПНИЙ:\n{path}\n\nПеревірте налаштування мережевого доступу (SMB)!")
 
     def update_db_settings(self, version, method, path):
         try:
@@ -149,9 +340,9 @@ class UpdatesPage(QWidget):
             conn.commit()
             conn.close()
             
-            self.db_version_lbl.setText(f"Затверджена версія (роздається клієнтам): {version}")
-            self.db_method_lbl.setText(f"Метод доставки: {method}")
-            self.db_path_lbl.setText(f"Шлях: {path}")
+            self.db_version_lbl.setText(f"Затверджена версія (роздається клієнтам): <b> {version}</b>")
+            self.db_method_lbl.setText(f"Метод доставки: <b>{method}</b>")
+            self.db_path_lbl.setText(f"Шлях: <b>{path}</b>")
             QMessageBox.information(self, "Успіх", "Налаштування оновлень в БД збережено. Клієнти отримають сповіщення.")
         except Exception as e:
             QMessageBox.critical(self, "Помилка БД", str(e))
@@ -208,12 +399,26 @@ class UpdatesPage(QWidget):
         file_path, _ = QFileDialog.getOpenFileName(self, "Виберіть архів оновлення", "", "ZIP Files (*.zip)")
         if not file_path: return
         
-        current_version = get_setting('admin_approved_version', '1.0.0-0')
-        base, patch = current_version.split('-') if '-' in current_version else (current_version, "0")
-        new_patch = int(patch) + 1
-        new_version = f"{base}-{new_patch}"
+        # Беремо базу з локального файлу, щоб патч відповідав поточному коду
+        base_version = "1.0.0"
+        try:
+            if os.path.exists('version.txt'):
+                with open('version.txt', 'r') as f:
+                    base_version = f.read().strip().split('-')[0]
+        except: pass
+
+        current_db_version = get_setting('admin_approved_version', base_version + "-0")
+        db_base, db_patch = current_db_version.split('-') if '-' in current_db_version else (current_db_version, "0")
         
-        reply = QMessageBox.question(self, "Розповсюдження патчу", f"Це підвищить версію локального патчу до {new_version}.\nПочати копіювання на сервер?")
+        # Якщо база в БД така ж як наша поточна, інкрементуємо патч
+        if db_base == base_version:
+            new_patch = int(db_patch) + 1
+        else:
+            new_patch = 1
+            
+        new_version = f"{base_version}-{new_patch}"
+        
+        reply = QMessageBox.question(self, "Розповсюдження патчу", f"Буде випущено локальний патч версії {new_version}.\nПочати копіювання на сервер?")
         if reply != QMessageBox.Yes: return
         
         try:

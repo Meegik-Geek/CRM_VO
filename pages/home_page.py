@@ -130,7 +130,11 @@ class HomePage(QMainWindow):
         self.update_banner.show()
 
     def show_admin_update(self, version, method, path):
-        self.update_banner_label.setText(f"Доступне обов'язкове оновлення (v{version})!")
+        source = "Локальна мережа" if method == "LOCAL" else "Інтернет"
+        is_patch = "-" in version and not version.endswith("-0")
+        type_text = "Локальне оновлення" if is_patch else "Обов'язкове оновлення"
+        
+        self.update_banner_label.setText(f"{type_text} (v{version})! Джерело: {source}")
         self.update_banner_btn.show()
         self.update_banner.show()
         
