@@ -37,8 +37,8 @@ class HomePage(QMainWindow):
         main_widget = QWidget(self)
         self.setCentralWidget(main_widget)
         layout = QVBoxLayout(main_widget)
-        layout.setAlignment(Qt.AlignCenter)
         layout.setSpacing(25)
+        layout.addStretch()
 
         # Заголовок
         try:
@@ -56,7 +56,7 @@ class HomePage(QMainWindow):
         self.update_banner_label = QLabel("", self)
         self.update_banner_label.setWordWrap(True)
         self.update_banner_label.setAlignment(Qt.AlignCenter)
-        self.update_banner_label.setStyleSheet("color: red; font-weight: bold; font-size: 14px;")
+        self.update_banner_label.setStyleSheet("color: #e74c3c; font-weight: bold; font-size: 12px;")
         
         self.update_banner_btn = QPushButton("Перезавантажити та Оновити", self)
         self.update_banner_btn.setObjectName("logButton")
@@ -68,7 +68,6 @@ class HomePage(QMainWindow):
         banner_layout.addWidget(self.update_banner_label)
         banner_layout.addWidget(self.update_banner_btn, alignment=Qt.AlignCenter)
         self.update_banner.hide()
-        layout.addWidget(self.update_banner)
 
         self.title_label = QLabel(college_name, self)
         self.title_label.setObjectName("titleLabel")
@@ -84,6 +83,10 @@ class HomePage(QMainWindow):
         self.setup_buttons()
         layout.addWidget(self.full_time_button, alignment=Qt.AlignCenter)
         layout.addWidget(self.part_time_button, alignment=Qt.AlignCenter)
+
+        # Футер з оновленням
+        layout.addStretch()
+        layout.addWidget(self.update_banner)
 
         # Верхні кнопки
         self.login_button = QPushButton("Вхід", self)

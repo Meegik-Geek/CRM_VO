@@ -80,28 +80,6 @@ class InputAdminPage(QMainWindow):
         self.table_list.setCurrentRow(0)
         self.on_item_clicked(self.table_list.item(0))
 
-        # Перевірка оновлень для адміна
-        self.check_for_updates()
-
-    def check_for_updates(self):
-        try:
-            from utils.update_checker import UpdateCheckerThread
-            self.update_checker = UpdateCheckerThread()
-            self.update_checker.global_update_available.connect(self.mark_update_available)
-            self.update_checker.start()
-        except Exception as e:
-            print(f"Помилка ініціалізації перевірки оновлень: {e}")
-
-    def mark_update_available(self, version):
-        """Додає індикатор оновлення до пункту меню"""
-        for i in range(self.table_list.count()):
-            item = self.table_list.item(i)
-            if "Системні оновлення" in item.text():
-                if "●" not in item.text():
-                    item.setText(f"Системні оновлення  ●")
-                    item.setForeground(Qt.red)
-                break
-
     def populate_menu_items(self):
         """Додає розділи меню для лівої панелі"""
         self.add_menu_item("Головна")
@@ -199,8 +177,7 @@ class InputAdminPage(QMainWindow):
                 "Створення типу фінансування та груп": ListInputStudent,
                 "Витяги, звіти студентів": StudentDrukDen,
                 "Налаштування системи": SettingsPage,
-                "Системні оновлення": UpdatesPage,
-                "Системні оновлення  ●": UpdatesPage
+                "Системні оновлення": UpdatesPage
             }.get(selected_text)
 
             if page_class:
