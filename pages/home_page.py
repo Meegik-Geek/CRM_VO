@@ -1,7 +1,7 @@
 import os
 import subprocess
 from PyQt5.QtWidgets import (
-    QMainWindow, QPushButton, QVBoxLayout, QWidget, QLabel, QDialog, QLineEdit, QApplication
+    QMainWindow, QPushButton, QVBoxLayout, QHBoxLayout, QWidget, QLabel, QDialog, QLineEdit, QApplication
 )
 from PyQt5.QtCore import Qt, QSettings
 from PyQt5.QtGui import QCursor, QIcon
@@ -38,7 +38,7 @@ class HomePage(QMainWindow):
         self.setCentralWidget(main_widget)
         layout = QVBoxLayout(main_widget)
         layout.setSpacing(25)
-        layout.addStretch()
+        layout.setContentsMargins(0, 20, 0, 0)
 
         # Заголовок
         try:
@@ -49,32 +49,38 @@ class HomePage(QMainWindow):
             log_error("Не вдалося завантажити назву закладу з БД", e)
             show_error(self, "Помилка підключення до бази даних. Перевірте налаштування .env")
 
-        # Банер оновлення
-        self.update_banner = QWidget(self)
+        # Банер оновлення (футер)
+        self.update_banner = QWidget()
         self.update_banner.setObjectName("updateBanner")
-        banner_layout = QVBoxLayout(self.update_banner)
-        self.update_banner_label = QLabel("", self)
-        self.update_banner_label.setWordWrap(True)
-        self.update_banner_label.setAlignment(Qt.AlignCenter)
-        self.update_banner_label.setStyleSheet("color: #e74c3c; font-weight: bold; font-size: 12px;")
+        banner_layout = QHBoxLayout(self.update_banner)
+        banner_layout.setContentsMargins(15, 6, 15, 6)
+        banner_layout.setSpacing(8)
+        banner_layout.setAlignment(Qt.AlignCenter)
         
-        self.update_banner_btn = QPushButton("Перезавантажити та Оновити", self)
-        self.update_banner_btn.setObjectName("logButton")
-        self.update_banner_btn.setFixedSize(250, 40)
+        self.update_banner_label = QLabel("")
+        self.update_banner_label.setWordWrap(False)
+        self.update_banner_label.setAlignment(Qt.AlignVCenter | Qt.AlignCenter)
+        self.update_banner_label.setStyleSheet("color: #e74c3c; font-weight: bold; font-size: 12px;")
+        banner_layout.addWidget(self.update_banner_label)
+        
+        self.update_banner_btn = QPushButton("↺")
+        self.update_banner_btn.setObjectName("greenButton")
+        self.update_banner_btn.setFixedSize(40, 30)
         self.update_banner_btn.setCursor(QCursor(Qt.PointingHandCursor))
+        self.update_banner_btn.setToolTip("Програма закриється! Збережіть внесені дані!")
         self.update_banner_btn.clicked.connect(self.run_updater)
         self.update_banner_btn.hide()
+        banner_layout.addWidget(self.update_banner_btn)
         
-        banner_layout.addWidget(self.update_banner_label)
-        banner_layout.addWidget(self.update_banner_btn, alignment=Qt.AlignCenter)
         self.update_banner.hide()
-
+        
         self.title_label = QLabel(college_name, self)
         self.title_label.setObjectName("titleLabel")
         self.title_label.setAlignment(Qt.AlignCenter)
         self.title_label.setWordWrap(True)
+        layout.addStretch()
         layout.addWidget(self.title_label)
-
+        
         # Кнопки навігації
         self.full_time_button = QPushButton("Денна", self)
         self.full_time_button.setObjectName("navButton")
@@ -83,7 +89,7 @@ class HomePage(QMainWindow):
         self.setup_buttons()
         layout.addWidget(self.full_time_button, alignment=Qt.AlignCenter)
         layout.addWidget(self.part_time_button, alignment=Qt.AlignCenter)
-
+        
         # Футер з оновленням
         layout.addStretch()
         layout.addWidget(self.update_banner)
