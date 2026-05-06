@@ -186,6 +186,7 @@ CREATE TABLE IF NOT EXISTS entrance_examinations_evening (
 CREATE TABLE IF NOT EXISTS entrance_scores (
     number_sprava VARCHAR(50) PRIMARY KEY,
     score NUMERIC(5,2),
+    gpa_score NUMERIC(5,2),
     status VARCHAR(50) DEFAULT 'З’явився',
     motivation_rank INTEGER
 );

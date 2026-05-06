@@ -968,19 +968,23 @@ class DocumentPrinter:
                     os.number_sprava,
                     SUBSTRING(os.finanse FROM 1 FOR 1) AS finanse,
                     COALESCE(pd.algebra::TEXT, '') || '-' || COALESCE(pd.geometry::TEXT, '') || '-' || 
-                    COALESCE(pd.ukr_language::TEXT, '') || '-' || COALESCE(pd.ukr_literature::TEXT, '') AS ocinki
+                    COALESCE(pd.ukr_language::TEXT, '') || '-' || COALESCE(pd.ukr_literature::TEXT, '') AS ocinki,
+                    es.gpa_score
                 FROM 
                     public.{personal_data_table} pd
                 LEFT JOIN 
                     public.{case_table} os ON pd.cert_number = os.cert_number
                 LEFT JOIN 
                     public.{benefits_table} pv ON pd.cert_number = pv.cert_number
+                LEFT JOIN
+                    public.entrance_scores es ON TRIM(os.number_sprava) = TRIM(es.number_sprava)
                 WHERE 
                     os.number_sprava IS NOT NULL
                 GROUP BY 
                     pd.cert_number, pd.last_name, pd.first_name, pd.middle_name, 
                     os.name_specialnosti, os.number_sprava, os.finanse, 
-                    pd.algebra, pd.geometry, pd.ukr_language, pd.ukr_literature
+                    pd.algebra, pd.geometry, pd.ukr_language, pd.ukr_literature,
+                    es.gpa_score
                 ORDER BY 
                     full_name ASC;
             """
@@ -995,13 +999,14 @@ class DocumentPrinter:
 
             # 3. Організовуємо дані — динамічне групування за спеціальностями
             applicants_dict = {}
-            for full_name, cert_number, kod_pilgi, specialty, number_sprava, finanse, ocinki in raw_data:
+            for full_name, cert_number, kod_pilgi, specialty, number_sprava, finanse, ocinki, gpa_score in raw_data:
                 if cert_number not in applicants_dict:
                     applicants_dict[cert_number] = {
                         "full_name": full_name,
                         "kod_pilgi": kod_pilgi or "",
                         "specialties": {code: [] for code in spec_codes},
-                        "ocinki": ocinki or "—"
+                        "ocinki": ocinki or "—",
+                        "gpa_score": str(gpa_score) if gpa_score is not None else ""
                     }
 
                 # Динамічне зіставлення спеціальності із кодом
@@ -1039,14 +1044,14 @@ class DocumentPrinter:
                 rFonts.set(qn('w:eastAsia'), font_name)
                 rFonts.set(qn('w:cs'), font_name)
 
-            num_cols = 3 + len(spec_codes) + 1
+            num_cols = 3 + len(spec_codes) + 2
             table = doc.add_table(rows=1, cols=num_cols)
             table.style = 'Table Grid'
             table.autofit = False 
             
             # Заголовки (повторюються на кожній сторінці як колонтитул таблиці)
             hdr_cells = table.rows[0].cells
-            headers = ["№ п/п", "ПІБ", "Код пільги"] + spec_codes + ["Оцінки"]
+            headers = ["№ п/п", "ПІБ", "Код пільги"] + spec_codes + ["Оцінки", "Середній бал"]
             for i, h_text in enumerate(headers):
                 hdr_cells[i].text = str(h_text)
                 set_font(hdr_cells[i].paragraphs[0].runs[0], bold=True)
@@ -1065,7 +1070,7 @@ class DocumentPrinter:
                 row_cells = table.add_row().cells
                 
                 spec_vals = [", ".join(app["specialties"][code]) for code in spec_codes]
-                row_data = [str(i), app["full_name"], app["kod_pilgi"]] + spec_vals + [app["ocinki"]]
+                row_data = [str(i), app["full_name"], app["kod_pilgi"]] + spec_vals + [app["ocinki"], app["gpa_score"]]
                 
                 for j, text in enumerate(row_data):
                     row_cells[j].text = text

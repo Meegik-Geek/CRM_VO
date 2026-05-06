@@ -20,17 +20,16 @@ class ListEntranceScores(BaseTableWidget):
         self.specialities = []
         self.selected_specialities = set()
         
-        # Ми передамо "entrance_scores" як назву таблиці, але логіку SELECT і UPDATE ми перепишемо
         super().__init__(
             table_name="entrance_scores",
-            headers=["Номер справи", "ПІБ вступника", "Спеціальність", "Бал", "Ранг мот. листа", "Статус", "Тип фінансовання", "Код пільги", "Тип пільги"],
+            headers=["Номер справи", "ПІБ вступника", "Спеціальність", "Бал", "Середній бал атестата", "Ранг мот. листа", "Статус", "Тип фінансовання", "Код пільги", "Тип пільги"],
             sql_queries={
                 "SELECT": "", # Ми перепишемо load_data
                 "DELETE": "DELETE FROM entrance_scores WHERE number_sprava = %s"
             },
-            columns_name=["number_sprava", "full_name", "name_specialnosti", "score", "motivation_rank", "status", "finanse", "kod_pilgi", "type_pilgi"],
+            columns_name=["number_sprava", "full_name", "name_specialnosti", "score", "gpa_score", "motivation_rank", "status", "finanse", "kod_pilgi", "type_pilgi"],
             label_text="Введення балів вступних випробувань",
-            combo_columns={5: ["З’явився", "Не з’явився", "Незадовільно"]},
+            combo_columns={6: ["З’явився", "Не з’явився", "Незадовільно"]},
             hide_id=False, # Показуємо номер справи
             can_add=False,
             can_delete=False
@@ -167,6 +166,7 @@ class ListEntranceScores(BaseTableWidget):
                     a.full_name, 
                     c.full_spec, 
                     s.score, 
+                    s.gpa_score,
                     s.motivation_rank,
                     s.status,
                     c.finanse,
@@ -194,22 +194,22 @@ class ListEntranceScores(BaseTableWidget):
                 self.table.insertRow(row_position)
                 for col, data in enumerate(row_data[:-1]):  # Пропускаємо останню колонку
                     val = str(data) if data is not None else ""
-                    # Для балу та рангу, якщо NULL, показуємо порожньо
-                    if (col == 3 or col == 4) and data is None: val = ""
+                    # Для балів та рангу, якщо NULL, показуємо порожньо
+                    if (col in [3, 4, 5]) and data is None: val = ""
                     # Для статусу
-                    if col == 5:
+                    if col == 6:
                         if is_cancelled:
                             val = "Скасовано"
                         elif data is None:
                             val = "З’явився"
                     
-                    if col == 3 or col == 4:
+                    if col in [3, 4, 5]:
                         item = NumericItem(val)  # Використовуємо кастомний клас для чисел
                     else:
                         item = QTableWidgetItem(val)
                         
-                    # Номер справи, ПІБ, Спеціальність, Тип фінансування, Код пільги, Тип пільги не можна редагувати тут
-                    if col < 3 or col >= 6 or is_cancelled:
+                    # Не редаговані поля
+                    if col < 3 or col >= 7 or is_cancelled:
                         item.setFlags(item.flags() & ~Qt.ItemIsEditable)
 
                     # Підсвічуємо скасовані справи червоним
@@ -229,20 +229,22 @@ class ListEntranceScores(BaseTableWidget):
 
     def update_record(self, row, column):
         """Переписаний метод оновлення для роботи з INSERT ... ON CONFLICT."""
-        if column < 3 or column >= 6: return # Не редаговані поля
+        if column < 3 or column >= 7: return # Не редаговані поля
         
         try:
             # Безепечне отримання даних із клітинок
             item_sprava = self.table.item(row, 0)
             item_score = self.table.item(row, 3)
-            item_rank = self.table.item(row, 4)
-            item_status = self.table.item(row, 5)
+            item_gpa = self.table.item(row, 4)
+            item_rank = self.table.item(row, 5)
+            item_status = self.table.item(row, 6)
 
             if not item_sprava:
                 return
 
             number_sprava = item_sprava.text().strip()
             score_val = item_score.text().strip() if item_score else ""
+            gpa_val = item_gpa.text().strip() if item_gpa else ""
             rank_val = item_rank.text().strip() if item_rank else ""
             status_val = item_status.text().strip() if item_status else "З’явився"
 
@@ -257,27 +259,32 @@ class ListEntranceScores(BaseTableWidget):
             # Валідація рангу
             rank_db = int(rank_val) if rank_val.isdigit() else None
 
-            # Валідація балу
-            if score_val == "":
-                score_db = None
-            else:
+            # Валідація балів
+            def clean_float(val):
+                if val == "": return None
                 try:
-                    score_db = float(score_val.replace(",", "."))
+                    return float(val.replace(",", "."))
                 except ValueError:
-                    # Повертаємо старе значення або очищуємо, якщо введено некоректно
-                    return
+                    return None
+
+            score_db = clean_float(score_val)
+            gpa_db = clean_float(gpa_val)
 
             # Використовуємо UPSERT (INSERT ... ON CONFLICT)
             query = """
-                INSERT INTO entrance_scores (number_sprava, score, status, motivation_rank)
-                VALUES (%s, %s, %s, %s)
+                INSERT INTO entrance_scores (number_sprava, score, gpa_score, status, motivation_rank)
+                VALUES (%s, %s, %s, %s, %s)
                 ON CONFLICT (number_sprava) 
-                DO UPDATE SET score = EXCLUDED.score, status = EXCLUDED.status, motivation_rank = EXCLUDED.motivation_rank
+                DO UPDATE SET 
+                    score = EXCLUDED.score, 
+                    gpa_score = EXCLUDED.gpa_score,
+                    status = EXCLUDED.status, 
+                    motivation_rank = EXCLUDED.motivation_rank
             """
-            self.cursor.execute(query, (number_sprava, score_db, status_val, rank_db))
+            self.cursor.execute(query, (number_sprava, score_db, gpa_db, status_val, rank_db))
             self.conn.commit()
             self.show_success_message("Дані збережено")
-            log_info(f"Оновлено бал для справи {number_sprava}: {score_val}, {status_val}")
+            log_info(f"Оновлено бали для справи {number_sprava}: Бал={score_val}, Атестат={gpa_val}, Статус={status_val}")
             
         except Exception as e:
             log_error(f"Помилка оновлення балу", e)

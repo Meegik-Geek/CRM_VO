@@ -96,6 +96,17 @@ class UpdateWorker(QThread):
                 except Exception:
                     pass
 
+            # ЗАПУСК МІГРАЦІЙ БАЗИ ДАНИХ
+            self.status.emit("Оновлення структури бази даних...")
+            try:
+                # Визначаємо як запустити скрипт міграції
+                db_manager_path = os.path.join(self.target_dir, "utils", "db_manager.py")
+                if os.path.exists(db_manager_path):
+                    # Використовуємо той самий інтерпретатор, що і для апдейтера
+                    subprocess.run([sys.executable, db_manager_path], check=False, creationflags=subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0)
+            except Exception as e:
+                print(f"Помилка при запуску міграцій: {e}")
+
             self.status.emit("Оновлення завершено!")
             time.sleep(1)
             self.finished.emit(True, "Успіх")
