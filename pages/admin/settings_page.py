@@ -1,12 +1,12 @@
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, 
-    QPushButton, QComboBox, QFormLayout, QGroupBox, QFileDialog, QTimeEdit, QMessageBox, QScrollArea
+    QPushButton, QComboBox, QFormLayout, QGroupBox, QFileDialog, QTimeEdit, QScrollArea
 )
 from PyQt5.QtCore import Qt, QTime, QUrl
 from PyQt5.QtGui import QCursor, QDesktopServices
 from db.repository import SettingsRepository, InstitutionRepository
 from db.backup_manager import schedule_backup, perform_backup, restore_backup
-from utils.notifications import show_error, show_success
+from utils.notifications import show_error, show_success, show_info, show_error_msg, show_warning_msg, ask_confirmation
 from utils.logger import log_error, log_info
 
 class SettingsPage(QWidget):
@@ -207,20 +207,20 @@ class SettingsPage(QWidget):
             show_error(self, f"Помилка: {str(e)}")
 
     def manual_restore(self):
-        """Виконує відновлення бази з обраного файлу."""
-        reply = QMessageBox.warning(
-            self, "УВАГА: Відновлення бази даних",
+        """Виконує відновлення бази з обраного файлу з українізованим підтвердженням."""
+        reply = ask_confirmation(
+            self,
             "Ви збираєтесь відновити базу даних з архіву.\n\n"
             "УСІ ПОТОЧНІ ДАНІ БУДУТЬ ЗАМІНЕНІ даними з обраного бекапу!\n"
             "Це неможливо скасувати. Ви впевнені?",
-            QMessageBox.Yes | QMessageBox.No, QMessageBox.No
+            "УВАГА: Відновлення бази даних"
         )
         
-        if reply == QMessageBox.Yes:
+        if reply:
             file_path, _ = QFileDialog.getOpenFileName(
                 self, "Оберіть файл бекапу", 
                 self.backup_path.text(), 
-                "Backup Files (*.sql);;All Files (*)"
+                "Backup Files (*.sql *.backup *.zip);;All Files (*)"
             )
             
             if file_path:
@@ -228,6 +228,16 @@ class SettingsPage(QWidget):
                     from PyQt5.QtWidgets import QApplication
                     QApplication.setOverrideCursor(Qt.WaitCursor)
                     success, message = restore_backup(file_path)
+                    QApplication.restoreOverrideCursor()
+                    
+                    if success:
+                        show_info(self, "Базу даних успішно відновлено!")
+                    else:
+                        show_error_msg(self, f"Помилка відновлення:\n{message}")
+                except Exception as e:
+                    from PyQt5.QtWidgets import QApplication
+                    QApplication.restoreOverrideCursor()
+                    show_error_msg(self, f"Критична помилка: {str(e)}")
                     QApplication.restoreOverrideCursor()
                     
                     if success:

@@ -237,7 +237,7 @@ class ProgressPage(QWizardPage):
 class InstallerWizard(QWizard):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Вступ 2026 - Майстер налаштування")
+        self.setWindowTitle("CRM Вступ.Офіс - Майстер налаштування")
         self.setWizardStyle(QWizard.ModernStyle)
         self.resize(600, 450)
         

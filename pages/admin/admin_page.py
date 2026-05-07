@@ -7,7 +7,7 @@ from PyQt5.QtGui import QCursor, QFont
 import os
 from db.backup_manager import restore_backup
 from utils.logger import log_error, log_info
-from utils.notifications import show_error, show_success, ask_confirmation
+from utils.notifications import show_error, show_success, ask_confirmation, show_info, show_error_msg, show_warning_msg
 
 # Імпорт всіх необхідних класів сторінок
 from pages.admin.denne.vstupnik_denna import ListVstupnikDen
@@ -292,13 +292,41 @@ class InputAdminPage(QMainWindow):
                 break
 
     def handle_restore(self):
-        """Обробка відновлення бази даних"""
+        """Обробка відновлення бази даних з українізованим підтвердженням"""
+        reply = ask_confirmation(
+            self,
+            "Ви збираєтесь відновити базу даних з архіву.\n\n"
+            "УСІ ПОТОЧНІ ДАНІ БУДУТЬ ЗАМІНЕНІ! Це неможливо скасувати.\nВи впевнені?",
+            "УВАГА: Відновлення бази даних"
+        )
+        
+        if not reply:
+            return
+
         file_path, _ = QFileDialog.getOpenFileName(
-            self, "Виберіть файл бекапу", "", "Backup Files (*.backup *.sql);;All Files (*)"
+            self, "Виберіть файл бекапу", "", "Backup Files (*.backup *.sql *.zip);;All Files (*)"
         )
         
         if not file_path:
             return
+
+        try:
+            from PyQt5.QtWidgets import QApplication
+            QApplication.setOverrideCursor(Qt.WaitCursor)
+            # Тут викликається реальна логіка відновлення
+            success, message = restore_backup(file_path)
+            QApplication.restoreOverrideCursor()
+            
+            if success:
+                show_info(self, "Базу даних успішно відновлено!")
+            else:
+                show_error_msg(self, f"Помилка відновлення:\n{message}")
+        except Exception as e:
+            from PyQt5.QtWidgets import QApplication
+            QApplication.restoreOverrideCursor()
+            log_error("Помилка ручного відновлення", e)
+            show_error_msg(self, f"Критична помилка: {str(e)}")
+
 
         # Запитуємо назву бази (за замовчуванням з .env)
         default_db = os.getenv("DB_NAME", "vstup")

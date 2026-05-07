@@ -6,9 +6,10 @@ import requests
 import json
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QPushButton, QLabel, QFileDialog, 
-    QMessageBox, QProgressBar, QHBoxLayout, QGroupBox, QApplication,
+    QProgressBar, QHBoxLayout, QGroupBox, QApplication,
     QTextEdit, QScrollArea
 )
+from utils.notifications import show_info, show_warning_msg, show_error_msg, ask_confirmation
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QCursor
 from db.connect_db import get_setting, setup_database
@@ -289,15 +290,16 @@ class UpdatesPage(QWidget):
 
     def _run_info_updater(self):
         if not hasattr(self, '_info_update_url') or not self._info_update_url:
-            QMessageBox.warning(self, "Увага", "Посилання на архів не знайдено.")
+            show_warning_msg(self, "Посилання на архів не знайдено.")
             return
-        reply = QMessageBox.question(
-            self, "Підтвердження",
+        reply = ask_confirmation(
+            self, 
             "Програма закриється, виконається оновлення та автоматично перезапускається.\nЗбережіть внесені дані!\n\nРозпочати?",
-            QMessageBox.Yes | QMessageBox.No
+            "Підтвердження"
         )
-        if reply != QMessageBox.Yes:
+        if not reply:
             return
+
         updater = "updater.exe" if os.path.exists("updater.exe") else sys.executable
         args = [updater]
         if updater == sys.executable:
@@ -311,32 +313,34 @@ class UpdatesPage(QWidget):
         path = get_setting('update_path', '')
         
         if method == 'NONE':
-            QMessageBox.information(self, "Перевірка", "Метод оновлення не встановлено.")
+            show_info(self, "Метод оновлення не встановлено.")
             return
         
         if method == 'INTERNET':
             try:
                 resp = requests.head(path, timeout=5)
                 if resp.status_code == 200:
-                    QMessageBox.information(self, "Успіх", "Посилання в Інтернеті доступне (HTTP 200).")
+                    show_info(self, "Посилання в Інтернеті доступне (HTTP 200).")
                 else:
-                    QMessageBox.warning(self, "Увага", f"Сервер повернув помилку: {resp.status_code}")
+                    show_warning_msg(self, f"Сервер повернув помилку: {resp.status_code}")
             except Exception as e:
-                QMessageBox.critical(self, "Помилка", f"Не вдалося перевірити посилання:\n{e}")
+                show_error_msg(self, f"Не вдалося перевірити посилання:\n{e}")
+
         
         else: # LOCAL
             if not path:
-                QMessageBox.warning(self, "Помилка", "Шлях до локального оновлення не вказано.")
+                show_warning_msg(self, "Шлях до локального оновлення не вказано.", "Помилка")
                 return
             
             if os.path.exists(path):
-                QMessageBox.information(self, "Успіх", f"Файл знайдено за шляхом:\n{path}\n\nКлієнти зможуть його скачати.")
+                show_info(self, f"Файл знайдено за шляхом:\n{path}\n\nКлієнти зможуть його скачати.")
             else:
                 dir_path = os.path.dirname(path)
                 if os.path.exists(dir_path):
-                     QMessageBox.warning(self, "Увага", f"Папка доступна, але ФАЙЛ 'update.zip' НЕ ЗНАЙДЕНО за шляхом:\n{path}")
+                     show_warning_msg(self, f"Папка доступна, але ФАЙЛ 'update.zip' НЕ ЗНАЙДЕНО за шляхом:\n{path}")
                 else:
-                     QMessageBox.critical(self, "Помилка", f"ШЛЯХ НЕДОСТУПНИЙ:\n{path}\n\nПеревірте налаштування мережевого доступу (SMB)!")
+                     show_error_msg(self, f"ШЛЯХ НЕДОСТУПНИЙ:\n{path}\n\nПеревірте налаштування мережевого доступу (SMB)!")
+
 
     def update_db_settings(self, version, method, path):
         try:
@@ -351,9 +355,10 @@ class UpdatesPage(QWidget):
             self.db_version_lbl.setText(f"Затверджена версія (роздається клієнтам): <b> {version}</b>")
             self.db_method_lbl.setText(f"Метод доставки: <b>{method}</b>")
             self.db_path_lbl.setText(f"Шлях: <b>{path}</b>")
-            QMessageBox.information(self, "Успіх", "Налаштування оновлень в БД збережено. Клієнти отримають сповіщення.")
+            show_info(self, "Налаштування оновлень в БД збережено. Клієнти отримають сповіщення.")
         except Exception as e:
-            QMessageBox.critical(self, "Помилка БД", str(e))
+            show_error_msg(self, str(e), "Помилка БД")
+
 
     def _get_server_unc_path(self):
         db_host = os.getenv('DB_HOST', 'localhost')
@@ -363,8 +368,9 @@ class UpdatesPage(QWidget):
 
     def deploy_local_from_github(self):
         if not self.latest_github_url:
-            QMessageBox.warning(self, "Увага", "Не знайдено посилання на GitHub. Спочатку дочекайтеся перевірки.")
+            show_warning_msg(self, "Не знайдено посилання на GitHub. Спочатку дочекайтеся перевірки.")
             return
+
 
         temp_dest = "temp_update.zip"
         self.btn_download_local.setEnabled(False)
@@ -380,8 +386,9 @@ class UpdatesPage(QWidget):
         self.btn_download_local.setEnabled(True)
         self.progress_bar.hide()
         if not success:
-            QMessageBox.critical(self, "Помилка", f"Не вдалося завантажити: {msg}")
+            show_error_msg(self, f"Не вдалося завантажити: {msg}")
             return
+
             
         try:
             target_path = self._get_server_unc_path()
@@ -392,16 +399,17 @@ class UpdatesPage(QWidget):
             shutil.move("temp_update.zip", target_path)
             self.update_db_settings(self.latest_github_version, "LOCAL", target_path)
         except Exception as e:
-            QMessageBox.critical(self, "Помилка файлової системи", f"Не вдалося скопіювати файл на сервер:\n{e}")
+            show_error_msg(self, f"Не вдалося скопіювати файл на сервер:\n{e}", "Помилка файлової системи")
 
     def deploy_internet_from_github(self):
         if not self.latest_github_url:
-            QMessageBox.warning(self, "Увага", "Не знайдено посилання на GitHub.")
+            show_warning_msg(self, "Не знайдено посилання на GitHub.")
             return
         
-        reply = QMessageBox.question(self, "Підтвердження", "Ви хочете щоб всі локальні комп'ютери скачували оновлення з Інтернету?")
-        if reply == QMessageBox.Yes:
+        reply = ask_confirmation(self, "Ви хочете щоб всі локальні комп'ютери скачували оновлення з Інтернету?")
+        if reply:
             self.update_db_settings(self.latest_github_version, "INTERNET", self.latest_github_url)
+
 
     def deploy_custom_patch(self):
         file_path, _ = QFileDialog.getOpenFileName(self, "Виберіть архів оновлення", "", "ZIP Files (*.zip)")
@@ -426,8 +434,8 @@ class UpdatesPage(QWidget):
             
         new_version = f"{base_version}-{new_patch}"
         
-        reply = QMessageBox.question(self, "Розповсюдження патчу", f"Буде випущено локальний патч версії {new_version}.\nПочати копіювання на сервер?")
-        if reply != QMessageBox.Yes: return
+        reply = ask_confirmation(self, f"Буде випущено локальний патч версії {new_version}.\nПочати копіювання на сервер?", "Розповсюдження патчу")
+        if not reply: return
         
         try:
             target_path = self._get_server_unc_path()
@@ -438,4 +446,4 @@ class UpdatesPage(QWidget):
             shutil.copy2(file_path, target_path)
             self.update_db_settings(new_version, "LOCAL", target_path)
         except Exception as e:
-            QMessageBox.critical(self, "Помилка файлової системи", f"Не вдалося скопіювати файл на сервер:\n{e}")
+            show_error_msg(self, f"Не вдалося скопіювати файл на сервер:\n{e}", "Помилка файлової системи")

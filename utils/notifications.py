@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QWidget, QLabel, QHBoxLayout, QApplication, QGraphicsOpacityEffect
+from PyQt5.QtWidgets import QWidget, QLabel, QHBoxLayout, QApplication, QGraphicsOpacityEffect, QMessageBox
 from PyQt5.QtCore import Qt, QTimer, QPropertyAnimation, QEasingCurve, QPoint
 from PyQt5.QtGui import QFont, QColor
 
@@ -147,11 +147,50 @@ def show_warning(parent, message, title=None, position='top'):
     toast = ToastNotification(parent, message, color="#F1C40F", icon="⚠", position=position)
     toast.show_notification()
 
+class LocalizedMessageBox(QMessageBox):
+    """QMessageBox з українськими кнопками."""
+    def __init__(self, parent=None, icon=QMessageBox.Information, title="Повідомлення", message="", buttons=QMessageBox.Ok):
+        super().__init__(parent)
+        self.setIcon(icon)
+        self.setWindowTitle(title)
+        self.setText(message)
+        self.setStandardButtons(buttons)
+        
+        # Переклад кнопок
+        self.button_translations = {
+            QMessageBox.Ok: "Добре",
+            QMessageBox.Yes: "Так",
+            QMessageBox.No: "Ні",
+            QMessageBox.Cancel: "Скасувати",
+            QMessageBox.Close: "Закрити",
+            QMessageBox.Save: "Зберегти",
+            QMessageBox.Discard: "Відхилити"
+        }
+        
+        for btn_type, text in self.button_translations.items():
+            button = self.button(btn_type)
+            if button:
+                button.setText(text)
+
+def show_info(parent, message, title="Інформація"):
+    """Показує інформаційне вікно з кнопкою ОК."""
+    msg = LocalizedMessageBox(parent, QMessageBox.Information, title, message, QMessageBox.Ok)
+    return msg.exec_()
+
+def show_warning_msg(parent, message, title="Увага"):
+    """Показує вікно попередження з кнопкою ОК."""
+    msg = LocalizedMessageBox(parent, QMessageBox.Warning, title, message, QMessageBox.Ok)
+    return msg.exec_()
+
+def show_error_msg(parent, message, title="Помилка"):
+    """Показує вікно помилки з кнопкою ОК."""
+    msg = LocalizedMessageBox(parent, QMessageBox.Critical, title, message, QMessageBox.Ok)
+    return msg.exec_()
+
 def ask_confirmation(parent, message, title="Підтвердження"):
-    """Залишається як діалогове вікно, бо потребує відповіді."""
-    from PyQt5.QtWidgets import QMessageBox
-    reply = QMessageBox.question(
-        parent, title, message,
-        QMessageBox.Yes | QMessageBox.No, QMessageBox.No
-    )
+    """Запитує підтвердження (Так/Ні). Повертає True, якщо обрано Так."""
+    msg = LocalizedMessageBox(parent, QMessageBox.Question, title, message, QMessageBox.Yes | QMessageBox.No)
+    msg.setDefaultButton(QMessageBox.No)
+    reply = msg.exec_()
     return reply == QMessageBox.Yes
+
