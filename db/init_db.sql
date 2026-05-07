@@ -222,3 +222,14 @@ INSERT INTO institution_info (full_name, short_name) VALUES
 ('Р’Р°С€ РЅР°РІС‡Р°Р»СЊРЅРёР№ Р·Р°РєР»Р°Рґ', 'Р’РќР—');
 
 
+
+-- 7. КОРИСТУВАЧІ ТА ПРАВА ДОСТУПУ
+CREATE TABLE IF NOT EXISTS system_users (
+    id SERIAL PRIMARY KEY,
+    person_name TEXT, -- ПІП відповідальної особи
+    login VARCHAR(100) UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    permissions JSONB DEFAULT '{}', -- Права доступу до розділів
+    is_admin BOOLEAN DEFAULT FALSE, -- Прапор суперкористувача
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

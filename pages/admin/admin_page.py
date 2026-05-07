@@ -34,6 +34,7 @@ from pages.admin.zaoch.entrance_examination_zaoch import ListExamZao
 from pages.admin.student.student_input_list import ListInputStudent
 from pages.admin.student.reports.student_druk_denne import StudentDrukDen
 from pages.admin.charts.charts_page import ChartsPage
+from pages.admin.users_page import UsersPage
 from pages.admin.settings_page import SettingsPage
 from pages.admin.updates_page import UpdatesPage
 
@@ -82,40 +83,50 @@ class InputAdminPage(QMainWindow):
         self.on_item_clicked(self.table_list.item(0))
 
     def populate_menu_items(self):
-        """Додає розділи меню для лівої панелі"""
-        self.add_menu_item("Головна")
-        self.add_section("Форми (денна)", bold=True)
-        self.add_menu_item("Список вступників (денна)")
-        self.add_menu_item("Список особових справ (денна)")
-        self.add_menu_item("Список особових справ (денна) скорочена")
-        self.add_menu_item("Список пільг вступників (денна)")
-        self.add_menu_item("Список спеціальностей (денна)")
-        self.add_menu_item("Список секретарів (денна)")
-        self.add_menu_item("Список вступних випробувань (денна)")
-        self.add_menu_item("Список вступних випробувань (денна) скорочена")
-        self.add_section("Форми (заочна)", bold=True)
-        self.add_menu_item("Список вступників (заочна)")
-        self.add_menu_item("Список особових справ (заочна)")
-        self.add_menu_item("Список пільг вступників (заочна)")
-        self.add_menu_item("Список спеціальностей (заочна)")
-        self.add_menu_item("Список секретарів (заочна)")
-        self.add_menu_item("Список вступних випробувань (заочна)")
-        self.add_section("Форми (загальні)", bold=True)
-        self.add_menu_item("Список галузі знань")
-        self.add_menu_item("Список пільг загальні")
-        self.add_menu_item("Введення балів випробувань")
-        self.add_section("Друк", bold=True)
-        self.add_menu_item("Звіти вступної кампанії")
-        self.add_menu_item("Журнали вступної кампанії")
-        self.add_menu_item("Протоколи/Допуски вступної кампанії")
-        self.add_section("Аналітика", bold=True)
-        self.add_menu_item("Графіки")
-        self.add_section("Студенти", bold=True)
-        self.add_menu_item("Створення типу фінансування та груп")
-        self.add_menu_item("Витяги, звіти студентів")
-        self.add_section("Система", bold=True)
-        self.add_menu_item("Налаштування системи")
-        self.add_menu_item("Системні оновлення")
+        """Додає розділи меню для лівої панелі з урахуванням прав доступу"""
+        menu_structure = [
+            (None, ["Головна"]),
+            ("Форми (денна)", [
+                "Список вступників (денна)", "Список особових справ (денна)", 
+                "Список особових справ (денна) скорочена", "Список пільг вступників (денна)", 
+                "Список спеціальностей (денна)", "Список секретарів (денна)", 
+                "Список вступних випробувань (денна)", "Список вступних випробувань (денна) скорочена"
+            ]),
+            ("Форми (заочна)", [
+                "Список вступників (заочна)", "Список особових справ (заочна)", 
+                "Список пільг вступників (заочна)", "Список спеціальностей (заочна)", 
+                "Список секретарів (заочна)", "Список вступних випробувань (заочна)"
+            ]),
+            ("Форми (загальні)", [
+                "Список галузі знань", "Список пільг загальні", "Введення балів випробувань"
+            ]),
+            ("Друк", [
+                "Звіти вступної кампанії", "Журнали вступної кампанії", 
+                "Протоколи/Допуски вступної кампанії"
+            ]),
+            ("Аналітика", ["Графіки"]),
+            ("Студенти", [
+                "Створення типу фінансування та груп", "Витяги, звіти студентів"
+            ]),
+            ("Система", ["Користувачі", "Налаштування системи", "Системні оновлення"])
+        ]
+
+        from pages.home_page import current_user_permissions
+
+        def can_show(name):
+            if name == "Головна": return True
+            if current_user_permissions == "all": return True
+            return isinstance(current_user_permissions, dict) and current_user_permissions.get(name)
+
+        for section_title, items in menu_structure:
+            # Фільтруємо пункти розділу
+            visible_items = [item for item in items if can_show(item)]
+            
+            if visible_items:
+                if section_title:
+                    self.add_section(section_title, bold=True)
+                for item in visible_items:
+                    self.add_menu_item(item)
 
     def add_section(self, name, bold=False):
         """Додає роздільник з секцією в список."""
@@ -178,6 +189,7 @@ class InputAdminPage(QMainWindow):
                 "Журнали вступної кампанії": AdminJournalCamp,
                 "Протоколи/Допуски вступної кампанії": AdminProtocolCamp,
                 "Графіки": ChartsPage,
+                "Користувачі": UsersPage,
                 "Створення типу фінансування та груп": ListInputStudent,
                 "Витяги, звіти студентів": StudentDrukDen,
                 "Налаштування системи": SettingsPage,
@@ -206,46 +218,78 @@ class InputAdminPage(QMainWindow):
         else:
             print(f"Недійсний індекс: {index}")
 
+    def select_menu_item_by_name(self, name):
+        """Вибір елемента меню за назвою"""
+        for i in range(self.table_list.count()):
+            item = self.table_list.item(i)
+            if item.text() == name:
+                self.table_list.setCurrentItem(item)
+                self.on_item_clicked(item)
+                break
+
     def show_default_buttons(self):
-        """Відображення кнопок за замовчуванням"""
+        """Відображення кнопок на головній сторінці з урахуванням прав доступу"""
+        from pages.home_page import current_user_permissions
+        
+        self.right_layout.addStretch(1) # Розпірка зверху
+
         label = QLabel("Адмін панель системи вступ", self)
         label.setObjectName("adminTitleLabel")
-        self.right_layout.addWidget(label)
+        self.right_layout.addWidget(label, alignment=Qt.AlignCenter)
 
-        self.button1 = QPushButton("Список вступників (денна)", self)
-        self.button2 = QPushButton("Список вступників (заочна)", self)
-        self.button3 = QPushButton("Звіти вступної кампанії", self)
-        self.button5 = QPushButton("Налаштування та бекапи", self)
-        self.button6 = QPushButton("Відновити базу з файлу", self)
+        def has_access(name):
+            if current_user_permissions == "all": return True
+            if isinstance(current_user_permissions, dict) and current_user_permissions.get(name): return True
+            return False
+
+        # Кнопки з перевіркою прав
+        buttons_config = [
+            ("Список вступників (денна)", "navButton", lambda: self.select_menu_item_by_name("Список вступників (денна)")),
+            ("Список вступників (заочна)", "navButton", lambda: self.select_menu_item_by_name("Список вступників (заочна)")),
+            ("Звіти вступної кампанії", "navButton", lambda: self.select_menu_item_by_name("Звіти вступної кампанії")),
+            ("Налаштування та бекапи", "navButton", lambda: self.on_item_clicked_by_name("Налаштування системи")),
+        ]
+
+        for text, style, callback in buttons_config:
+            perm_name = text
+            if text == "Налаштування та бекапи": perm_name = "Налаштування системи"
+            
+            if has_access(perm_name):
+                btn = QPushButton(text, self)
+                btn.setObjectName(style)
+                btn.setFixedWidth(455)
+                btn.setCursor(QCursor(Qt.PointingHandCursor))
+                btn.clicked.connect(callback)
+                self.right_layout.addWidget(btn, alignment=Qt.AlignCenter)
+
+        # Спеціальна кнопка тільки для супер-адміна
+        if current_user_permissions == "all":
+            self.button6 = QPushButton("Відновити базу з файлу", self)
+            self.button6.setObjectName("navButton")
+            self.button6.setFixedWidth(455)
+            self.button6.setCursor(QCursor(Qt.PointingHandCursor))
+            self.button6.clicked.connect(self.handle_restore)
+            self.right_layout.addWidget(self.button6, alignment=Qt.AlignCenter)
+
+        # Кнопка Вихід - завжди є
         self.button4 = QPushButton("Вихід", self)
-
-        self.button1.setObjectName("navButton")
-        self.button2.setObjectName("navButton")
-        self.button3.setObjectName("navButton")
-        self.button5.setObjectName("navButton")
-        self.button6.setObjectName("navButton")
         self.button4.setObjectName("greenButton")
-
-        for button in (self.button1, self.button2, self.button3, self.button5, self.button6, self.button4):
-            button.setFixedWidth(455)
-            button.setCursor(QCursor(Qt.PointingHandCursor))
-
-        self.right_layout.addWidget(self.button1)
-        self.right_layout.addWidget(self.button2)
-        self.right_layout.addWidget(self.button3)
-        self.right_layout.addWidget(self.button5)
-        self.right_layout.addWidget(self.button6)
-        self.right_layout.addWidget(self.button4)
-        self.right_layout.setSpacing(25)
-
-        self.button1.clicked.connect(lambda: self.select_menu_item(2))
-        self.button2.clicked.connect(lambda: self.select_menu_item(11))
-        self.button3.clicked.connect(lambda: self.select_menu_item(18))
-        self.button5.clicked.connect(lambda: self.select_menu_item(21)) # Налаштування системи
-        self.button6.clicked.connect(self.handle_restore)
+        self.button4.setFixedWidth(455)
+        self.button4.setCursor(QCursor(Qt.PointingHandCursor))
         self.button4.clicked.connect(self.close)
+        self.right_layout.addWidget(self.button4, alignment=Qt.AlignCenter)
 
-        self.right_layout.setAlignment(Qt.AlignCenter)
+        self.right_layout.setSpacing(25)
+        self.right_layout.addStretch(1) # Розпірка знизу
+
+    def on_item_clicked_by_name(self, name):
+        """Знаходить пункт меню за ім'ям та імітує клік"""
+        for i in range(self.table_list.count()):
+            item = self.table_list.item(i)
+            if item.text() == name:
+                self.table_list.setCurrentItem(item)
+                self.on_item_clicked(item)
+                break
 
     def handle_restore(self):
         """Обробка відновлення бази даних"""

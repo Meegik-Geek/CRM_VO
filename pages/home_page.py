@@ -12,6 +12,12 @@ from db.connect_db import get_setting
 from db.backup_manager import perform_backup
 from utils.logger import log_error, log_info
 from utils.notifications import show_error, show_success
+import hashlib
+import json
+from db.connect_db import setup_database, close_database
+
+# Глобальна змінна для прав доступу поточного користувача
+current_user_permissions = None
 
 class HomePage(QMainWindow):
     
@@ -346,12 +352,49 @@ class LoginDialog(QDialog):
         layout.addWidget(self.login_button, alignment=Qt.AlignCenter)
 
     def authenticate_user(self):
+        global current_user_permissions
         username = self.username_input.text().strip()
         password = self.password_input.text().strip()
-        if username == "admin" and password == "password":
+        
+        # 1. ПЕРЕВІРКА СУПЕР-АДМІНА З .ENV
+        env_admin_login = os.getenv('ADMIN_LOGIN', 'admin')
+        env_admin_password = os.getenv('ADMIN_PASSWORD', 'admin123')
+
+        if username == env_admin_login and password == env_admin_password:
+            current_user_permissions = "all" # Повний доступ до всього
             self.accept()
-        else:
-            self.error_label.setText("Невірний логін або пароль")
-            self.username_input.clear()
-            self.password_input.clear()
+            return
+
+        # 2. ПЕРЕВІРКА КОРИСТУВАЧІВ З БАЗИ ДАНИХ
+        conn = setup_database()
+        if not conn:
+            self.error_label.setText("Помилка підключення до БД")
+            return
+
+        try:
+            cursor = conn.cursor()
+            # Шукаємо користувача
+            cursor.execute("SELECT password_hash, permissions FROM system_users WHERE login = %s", (username,))
+            res = cursor.fetchone()
+            
+            if res:
+                db_hash, perms = res
+                input_hash = hashlib.sha256(password.encode()).hexdigest()
+                
+                if input_hash == db_hash:
+                    current_user_permissions = perms if isinstance(perms, dict) else json.loads(perms or "{}")
+                    self.accept()
+                else:
+                    self.error_label.setText("Невірний пароль")
+            else:
+                self.error_label.setText("Користувача не знайдено")
+                
+        except Exception as e:
+            self.error_label.setText(f"Помилка: {str(e)}")
+        finally:
+            close_database(conn)
+
+        self.password_input.clear()
+
+
 
