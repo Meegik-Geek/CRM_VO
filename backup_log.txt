@@ -1,0 +1,3 @@
+[2026-05-07 15:03:44] Bat створено: D:\Програма ВСТУП\Vstup2026\run_backup.bat
+[2026-05-07 15:03:44] Короткі шляхи: python=C:\Users\geekc\AppData\Local\Programs\Python\PYTHON~1\python.exe | script=D:\Програма ВСТУП\Vstup2026\db\backup_manager.py
+[2026-05-07 15:03:44] Планувальник зареєстровано: at_time о 15:04

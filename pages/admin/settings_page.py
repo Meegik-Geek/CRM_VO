@@ -1,10 +1,11 @@
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, 
-    QPushButton, QComboBox, QFormLayout, QGroupBox, QFileDialog, QTimeEdit
+    QPushButton, QComboBox, QFormLayout, QGroupBox, QFileDialog, QTimeEdit, QMessageBox, QScrollArea
 )
-from PyQt5.QtCore import Qt, QTime
+from PyQt5.QtCore import Qt, QTime, QUrl
+from PyQt5.QtGui import QCursor, QDesktopServices
 from db.repository import SettingsRepository, InstitutionRepository
-from db.backup_manager import schedule_backup
+from db.backup_manager import schedule_backup, perform_backup, restore_backup
 from utils.notifications import show_error, show_success
 from utils.logger import log_error, log_info
 
@@ -17,11 +18,27 @@ class SettingsPage(QWidget):
         self.load_settings()
 
     def init_ui(self):
-        layout = QVBoxLayout(self)
-        layout.setAlignment(Qt.AlignTop)
+        # Головний лейаут сторінки
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+
+        # Створюємо область прокрутки
+        scroll = QScrollArea(self)
+        scroll.setWidgetResizable(True)
+        scroll.setObjectName("settingsScrollArea")
+        scroll.setStyleSheet("QScrollArea { border: none; background: transparent; }")
+
+        # Контейнер для вмісту
+        container = QWidget()
+        container.setObjectName("settingsContainer")
+        layout = QVBoxLayout(container)
+        layout.setAlignment(Qt.AlignTop | Qt.AlignHCenter)
+        layout.setSpacing(20)
+        layout.setContentsMargins(40, 20, 40, 20)
 
         title = QLabel("Налаштування системи", self)
         title.setObjectName("adminTitleLabel")
+        title.setAlignment(Qt.AlignCenter)
         layout.addWidget(title)
 
         # 1. Дані закладу
@@ -71,29 +88,170 @@ class SettingsPage(QWidget):
         path_layout.addWidget(self.btn_select_path)
         
         self.backup_freq = QComboBox()
-        self.backup_freq.addItems(["off", "3h", "daily", "weekly"])
+        self.backup_freq.addItem("Вимкнено", "off")
+        self.backup_freq.addItem("При запуску сервера", "on_startup")
+        self.backup_freq.addItem("В конкретний час (щодня, якщо сервер запущено)", "at_time")
+        self.backup_freq.currentIndexChanged.connect(self.toggle_time_visibility)
         
         self.backup_time = QTimeEdit()
+        self.backup_time.setObjectName("inputField")
         self.backup_time.setDisplayFormat("HH:mm")
+        self.backup_time.setMinimumHeight(35)
+        self.backup_time.setStyleSheet("""
+            QTimeEdit#inputField {
+                background-color: #ffffff;
+                border: 1px solid #ced4da;
+                border-radius: 4px;
+                padding: 5px 10px;
+                font-size: 14px;
+                color: #495057;
+            }
+            QTimeEdit#inputField:focus {
+                border-color: #80bdff;
+                outline: 0;
+            }
+        """)
+
+        self.backup_time_label = QLabel("Час запуску:")
+
+        # Шлях до утиліт PG
+        self.pg_tools_path = QLineEdit()
+        self.pg_tools_path.setObjectName("inputField")
+        self.btn_select_pg_path = QPushButton("Огляд...")
+        self.btn_select_pg_path.clicked.connect(self.select_pg_tools_path)
+        pg_path_layout = QHBoxLayout()
+        pg_path_layout.addWidget(self.pg_tools_path)
+        pg_path_layout.addWidget(self.btn_select_pg_path)
 
         backup_layout.addRow("Шлях до бекапів:", path_layout)
+        backup_layout.addRow("Шлях до PostgreSQL (bin):", pg_path_layout)
         backup_layout.addRow("Частота:", self.backup_freq)
-        backup_layout.addRow("Час (для щодня/тиждень):", self.backup_time)
+        backup_layout.addRow(self.backup_time_label, self.backup_time)
+
+        self.btn_manual_backup = QPushButton("Створити бекап зараз")
+        self.btn_manual_backup.setObjectName("greenButton")
+        self.btn_manual_backup.setFixedWidth(200)
+        self.btn_manual_backup.setCursor(QCursor(Qt.PointingHandCursor))
+        self.btn_manual_backup.clicked.connect(self.manual_backup)
+        
+        self.btn_restore_backup = QPushButton("Відновити базу з файлу")
+        self.btn_restore_backup.setObjectName("navButton")
+        self.btn_restore_backup.setFixedWidth(200)
+        self.btn_restore_backup.setCursor(QCursor(Qt.PointingHandCursor))
+        self.btn_restore_backup.clicked.connect(self.manual_restore)
+
+        self.btn_view_log = QPushButton("Переглянути лог бекапів")
+        self.btn_view_log.setObjectName("navButton")
+        self.btn_view_log.setFixedWidth(200)
+        self.btn_view_log.setCursor(QCursor(Qt.PointingHandCursor))
+        self.btn_view_log.clicked.connect(self.view_backup_log)
+        
+        buttons_h_layout = QHBoxLayout()
+        buttons_h_layout.addWidget(self.btn_manual_backup)
+        buttons_h_layout.addWidget(self.btn_restore_backup)
+        buttons_h_layout.addWidget(self.btn_view_log)
+        buttons_h_layout.addStretch()
+        
+        backup_layout.addRow("", buttons_h_layout)
         
         backup_group.setLayout(backup_layout)
         layout.addWidget(backup_group)
 
-        # Кнопка збереження
+        # Кнопка збереження (тепер всередині скролу)
         self.save_btn = QPushButton("Зберегти всі налаштування", self)
         self.save_btn.setObjectName("navButton")
-        self.save_btn.setFixedWidth(300)
+        self.save_btn.setFixedWidth(400)
+        self.save_btn.setFixedHeight(50)
+        self.save_btn.setCursor(QCursor(Qt.PointingHandCursor))
         self.save_btn.clicked.connect(self.save_all)
         layout.addWidget(self.save_btn, alignment=Qt.AlignCenter)
+        
+        layout.addStretch(1) # Додаємо розпірку знизу
+
+        # Встановлюємо контейнер у скрол і скрол у головний лейаут
+        scroll.setWidget(container)
+        main_layout.addWidget(scroll)
 
     def select_backup_path(self):
         directory = QFileDialog.getExistingDirectory(self, "Виберіть папку для бекапів")
         if directory:
             self.backup_path.setText(directory)
+
+    def select_pg_tools_path(self):
+        directory = QFileDialog.getExistingDirectory(self, "Оберіть папку 'bin' встановленого PostgreSQL")
+        if directory:
+            self.pg_tools_path.setText(directory)
+
+    def toggle_time_visibility(self):
+        """Ховає або показує вибір часу залежно від частоти."""
+        is_time_needed = self.backup_freq.currentData() == "at_time"
+        self.backup_time.setVisible(is_time_needed)
+        self.backup_time_label.setVisible(is_time_needed)
+
+    def manual_backup(self):
+        """Виконує бекап вручну при натисканні кнопки."""
+        try:
+            from PyQt5.QtWidgets import QApplication
+            QApplication.setOverrideCursor(Qt.WaitCursor)
+            success = perform_backup()
+            QApplication.restoreOverrideCursor()
+            
+            if success:
+                show_success(self, "Резервну копію успішно створено!")
+            else:
+                show_error(self, "Не вдалося створити бекап. Перевірте шлях у налаштуваннях.")
+        except Exception as e:
+            from PyQt5.QtWidgets import QApplication
+            QApplication.restoreOverrideCursor()
+            log_error("Помилка ручного бекапу", e)
+            show_error(self, f"Помилка: {str(e)}")
+
+    def manual_restore(self):
+        """Виконує відновлення бази з обраного файлу."""
+        reply = QMessageBox.warning(
+            self, "УВАГА: Відновлення бази даних",
+            "Ви збираєтесь відновити базу даних з архіву.\n\n"
+            "УСІ ПОТОЧНІ ДАНІ БУДУТЬ ЗАМІНЕНІ даними з обраного бекапу!\n"
+            "Це неможливо скасувати. Ви впевнені?",
+            QMessageBox.Yes | QMessageBox.No, QMessageBox.No
+        )
+        
+        if reply == QMessageBox.Yes:
+            file_path, _ = QFileDialog.getOpenFileName(
+                self, "Оберіть файл бекапу", 
+                self.backup_path.text(), 
+                "Backup Files (*.sql);;All Files (*)"
+            )
+            
+            if file_path:
+                try:
+                    from PyQt5.QtWidgets import QApplication
+                    QApplication.setOverrideCursor(Qt.WaitCursor)
+                    success, message = restore_backup(file_path)
+                    QApplication.restoreOverrideCursor()
+                    
+                    if success:
+                        show_success(self, "Базу даних успішно відновлено!")
+                    else:
+                        show_error(self, f"Помилка відновлення:\n{message}")
+                except Exception as e:
+                    from PyQt5.QtWidgets import QApplication
+                    QApplication.restoreOverrideCursor()
+                    log_error("Помилка ручного відновлення", e)
+                    show_error(self, f"Критична помилка: {str(e)}")
+
+    def view_backup_log(self):
+        """Відкриває файл логування бекапів у стандартному редакторі."""
+        import os
+        # Шлях до логу в корені проекту
+        script_dir = os.path.dirname(os.path.abspath(__file__)) # pages/admin
+        project_root = os.path.dirname(os.path.dirname(script_dir))
+        log_path = os.path.join(project_root, "backup_log.txt")
+        
+        if os.path.exists(log_path):
+            QDesktopServices.openUrl(QUrl.fromLocalFile(log_path))
+        else:
+            show_error(self, "Файл логів ще не створено (бекапи ще не запускалися).")
 
     def load_settings(self):
         try:
@@ -116,7 +274,14 @@ class SettingsPage(QWidget):
             self.edebo_admin.setText(all_s.get("edebo_admin", "Наталія ХОРУНЖА"))
 
             self.backup_path.setText(all_s.get("backup_path", "C:\\Vstup_Backups"))
-            self.backup_freq.setCurrentText(all_s.get("backup_frequency", "daily"))
+            self.pg_tools_path.setText(all_s.get("pg_tools_path", ""))
+            
+            freq_key = all_s.get("backup_frequency", "off")
+            index = self.backup_freq.findData(freq_key)
+            if index >= 0:
+                self.backup_freq.setCurrentIndex(index)
+            
+            self.toggle_time_visibility()
             
             b_time_str = all_s.get("backup_time", "00:00")
             h, m = map(int, b_time_str.split(":"))
@@ -147,7 +312,8 @@ class SettingsPage(QWidget):
             self.settings_repo.set_setting("edebo_admin", self.edebo_admin.text())
 
             self.settings_repo.set_setting("backup_path", self.backup_path.text())
-            self.settings_repo.set_setting("backup_frequency", self.backup_freq.currentText())
+            self.settings_repo.set_setting("pg_tools_path", self.pg_tools_path.text())
+            self.settings_repo.set_setting("backup_frequency", self.backup_freq.currentData())
             self.settings_repo.set_setting("backup_time", self.backup_time.time().toString("HH:mm"))
             
             # 3. Оновлюємо розклад у Windows

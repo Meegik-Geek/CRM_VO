@@ -9,6 +9,7 @@ from pages.denne.denne_page import InputDenPage
 from pages.zaoch.zaoch_page import InputZaochPage
 from pages.admin.admin_page import InputAdminPage
 from db.connect_db import get_setting
+from db.backup_manager import perform_backup
 from utils.logger import log_error, log_info
 from utils.notifications import show_error, show_success
 
@@ -23,6 +24,18 @@ class HomePage(QMainWindow):
         self.init_ui()
         self.load_settings()
         self.load_styles()
+        self.check_startup_backup()
+
+    def check_startup_backup(self):
+        """Перевіряє, чи потрібно робити бекап при запуску."""
+        try:
+            if get_setting("backup_frequency", "off") == "on_startup":
+                log_info("Запуск автоматичного бекапу при старті...")
+                QApplication.setOverrideCursor(Qt.WaitCursor)
+                perform_backup()
+                QApplication.restoreOverrideCursor()
+        except Exception as e:
+            log_error("Помилка при виконанні стартап-бекапу", e)
 
     def init_ui(self):
         self.setWindowTitle("CRM Вступ.Офіс")
