@@ -12,3 +12,5 @@ build/
 dist/
 *.spec
 updates/
+backup_log.txt
+run_backup.bat
