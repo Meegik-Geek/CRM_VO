@@ -20,11 +20,16 @@ class AdminProtocolCamp(BaseReportPage):
         ]
         self.add_navigation_buttons(nav_buttons)
 
-        # 2. Зелені кнопки (дії)
-        self.add_action_button("dodatki", "Друк додатків до протоколів", self.dodatki_protokol_denne_page)
-        self.add_action_button("dopusk_day", "Друк допуску (денна)", self.print_dopusk_page)
-        self.add_action_button("dopusk_scor", "Друк допуску (скорочена)", self.print_dopusk_scor_page)
-        self.add_action_button("dopusk_zaoch", "Друк допуску (заочне)", self.print_dopusk_zaoch_page)
+        # 2. Зелені кнопки (дії) з описами
+        self.set_general_description("Оберіть тип документа для перегляду опису та подальшого друку.")
+
+        self.add_action_button("dodatki", "Друк додатків до протоколів", self.dodatki_protokol_denne_page,
+                               "Формування переліку вступників за обраний період для включення до протоколів засідань приймальної комісії.")
+        
+        desc_dopusk = "Офіційний лист допуску вступників до складання вступних випробувань. Містить список абітурієнтів, розбитих на групи за спеціальностями."
+        self.add_action_button("dopusk_day", "Друк допуску (денна)", self.print_dopusk_page, desc_dopusk)
+        self.add_action_button("dopusk_scor", "Друк допуску (скорочена)", self.print_dopusk_scor_page, desc_dopusk)
+        self.add_action_button("dopusk_zaoch", "Друк допуску (заочне)", self.print_dopusk_zaoch_page, desc_dopusk)
 
     def print_dopusk_page(self):
         self.show_print_dialog(

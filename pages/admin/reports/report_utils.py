@@ -124,6 +124,7 @@ class BaseReportPage(QWidget):
         self.title_text = title_text
         self.group_title = group_title
         self.action_buttons = {}
+        self.action_info_labels = {} # Тексти описів
         self.init_base_ui()
 
     def init_base_ui(self):
@@ -149,9 +150,15 @@ class BaseReportPage(QWidget):
         self.button_layout = QVBoxLayout(self.document_group)
         self.button_layout.setSpacing(20)
         self.button_layout.addStretch(1) # Пружина зверху
-        
-        # Створюємо спеціальний індекс для вставки кнопок (після першої пружини)
-        # Але насправді ми просто будемо вставляти перед останньою пружиною, яку додамо зараз
+
+        # Загальний опис (буде по центру до вибору звіту)
+        self.general_desc_label = QLabel("", self)
+        self.general_desc_label.setObjectName("generalDescLabel")
+        self.general_desc_label.setWordWrap(True)
+        self.general_desc_label.setAlignment(Qt.AlignCenter)
+        self.general_desc_label.setStyleSheet("color: #888; font-size: 16px; font-style: italic;")
+        self.button_layout.addWidget(self.general_desc_label)
+
         self.button_layout.addStretch(1) # Пружина знизу
         
         form_layout.addRow(self.document_group)
@@ -179,24 +186,47 @@ class BaseReportPage(QWidget):
         if current_row_layout.count() > 0:
             self.nav_layout.addLayout(current_row_layout)
 
-    def add_action_button(self, key, text, handler):
-        """Створює приховану зелену кнопку друку."""
+    def set_general_description(self, text):
+        """Встановлює загальний опис для області друку."""
+        self.general_desc_label.setText(text)
+
+    def add_action_button(self, key, text, handler, description=None):
+        """Створює приховану секцію з описом та зеленою кнопкою друку."""
+        # Контейнер для звіту (опис + кнопка)
+        container = QWidget()
+        container_layout = QVBoxLayout(container)
+        container_layout.setSpacing(15)
+        container_layout.setAlignment(Qt.AlignCenter)
+
+        if description:
+            desc_label = QLabel(description)
+            desc_label.setObjectName("reportDescription")
+            desc_label.setWordWrap(True)
+            desc_label.setAlignment(Qt.AlignCenter)
+            desc_label.setFixedWidth(700)
+            desc_label.setMinimumHeight(70) 
+            desc_label.setStyleSheet("font-size: 15px; color: #333; line-height: 1.5; margin-bottom: 10px; padding: 5px;")
+            container_layout.addWidget(desc_label, alignment=Qt.AlignCenter)
+
         btn = QPushButton(text, self)
-        btn.setObjectName("printButton") # Зелена кнопка
+        btn.setObjectName("printButton")
         btn.setFixedHeight(50)
-        btn.setFixedWidth(400)
+        btn.setFixedWidth(450) # Трохи збільшено кнопку для балансу
         btn.setCursor(QCursor(Qt.PointingHandCursor))
-        btn.setVisible(False)
         btn.clicked.connect(handler)
-        # Вставляємо кнопку між двома пружинами (індекс 1)
-        self.button_layout.insertWidget(1, btn, alignment=Qt.AlignCenter)
-        self.action_buttons[key] = btn
+        container_layout.addWidget(btn, alignment=Qt.AlignCenter)
+
+        container.setVisible(False)
+        # Вставляємо між пружинами (індекс 2, бо 0 - заголовок, 1 - пружина)
+        self.button_layout.insertWidget(2, container, alignment=Qt.AlignCenter)
+        self.action_buttons[key] = container
         return btn
 
     def show_action_button(self, key):
-        """Показує обрану кнопку друку та приховує інші."""
-        for k, btn in self.action_buttons.items():
-            btn.setVisible(k == key)
+        """Показує обрану кнопку друку та приховує загальний опис."""
+        self.general_desc_label.setVisible(False)
+        for k, widget in self.action_buttons.items():
+            widget.setVisible(k == key)
 
     def show_print_dialog(self, title, handler, fields_config):
         dialog = PrintDialog(self, title, handler, extra_fields=fields_config)

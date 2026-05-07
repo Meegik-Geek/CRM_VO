@@ -21,13 +21,21 @@ class AdminJournalCamp(BaseReportPage):
         ]
         self.add_navigation_buttons(nav_buttons)
 
-        # 2. Зелені кнопки (дії)
-        self.add_action_button("registr", "Друк журналу реєстрації", self.registr_vstupnik_page)
-        self.add_action_button("alfavit", "Друк алфавітного журналу", self.alfavit_vstupnik_page)
-        self.add_action_button("spec_umovi", "Друк журналу спец. умов", self.spec_umovi_vstupnik_page)
-        self.add_action_button("spec_zvit", "Друк журналу пільги/оцінки", self.spec_zvit_vstupnik_page)
-        self.add_action_button("export", "Виконати експорт даних", self.export_date_vstupnik_page)
-        self.add_action_button("cancelled", "Експорт скасованих справ", self.cancelled_cases_page)
+        # 2. Зелені кнопки (дії) з описами
+        self.set_general_description("Оберіть потрібний журнал, щоб переглянути його призначення та сформувати документ.")
+
+        self.add_action_button("registr", "Друк журналу реєстрації", self.registr_vstupnik_page,
+                               "Основний журнал реєстрації всіх заяв вступників. Містить інформацію про дату подачі, ПІБ, спеціальність та номер особової справи.")
+        self.add_action_button("alfavit", "Друк алфавітного журналу", self.alfavit_vstupnik_page,
+                               "Список усіх вступників, впорядкований за алфавітом. Зручний для швидкого пошуку абітурієнта та перевірки його даних.")
+        self.add_action_button("spec_umovi", "Друк журналу спец. умов", self.spec_umovi_vstupnik_page,
+                               "Журнал реєстрації вступників, які мають спеціальні умови вступу (пільги, квоти). Використовується для контролю за категоріями пільговиків.")
+        self.add_action_button("spec_zvit", "Друк журналу пільги/оцінки", self.spec_zvit_vstupnik_page,
+                               "Детальний звіт, що містить інформацію про пільги, оцінки за вступні випробування та середній бал атестата.")
+        self.add_action_button("export", "Виконати експорт даних", self.export_date_vstupnik_page,
+                               "Повний експорт усіх даних вступників у формат Word. Документ містить розгорнуту інформацію про кожного абітурієнта.")
+        self.add_action_button("cancelled", "Експорт скасованих справ", self.cancelled_cases_page,
+                               "Журнал справ, які були офіційно скасовані (відкликані) вступниками. Містить причину та дату скасування.")
 
     def registr_vstupnik_page(self):
         self.document_printer.print_registr_vstupnik_page()

@@ -425,6 +425,110 @@ class DocumentPrinter:
             self.show_error_message(f"Помилка при створенні ранжування: {str(e)}")
             self.close_db()
 
+    def print_gpa_ranking_all_forms(self, specialty_name, form_type, dialog):
+        """Друк ранжування за середнім балом для різних форм навчання."""
+        try:
+            self.connect_db()
+            
+            # Визначаємо таблиці
+            if form_type == 'day':
+                table_cases = "public.personal_case_day"
+                table_personal = "public.applicant_personal_data_day"
+                spec_display = specialty_name + " (денна)"
+            elif form_type == 'day_scor':
+                table_cases = "public.personal_case_day_scor"
+                table_personal = "public.applicant_personal_data_day"
+                spec_display = specialty_name + " (денна скорочена)"
+            elif form_type == 'evening':
+                table_cases = "public.personal_case_evening"
+                table_personal = "public.applicant_personal_data_evening"
+                spec_display = specialty_name + " (заочна)"
+            else:
+                self.show_error_message("Невідома форма навчання.")
+                self.close_db()
+                return
+
+            # Сортування: за Балом (DESC) та Номером справи (ASC)
+            query = f"""
+                SELECT 
+                    pd.last_name || ' ' || pd.first_name || ' ' || COALESCE(pd.middle_name, '') AS full_name,
+                    os.number_sprava,
+                    es.score,
+                    es.gpa_score
+                FROM 
+                    {table_cases} os
+                JOIN 
+                    {table_personal} pd ON os.cert_number = pd.cert_number
+                LEFT JOIN 
+                    entrance_scores es ON TRIM(os.number_sprava) = TRIM(es.number_sprava)
+                WHERE 
+                    os.name_specialnosti = %s
+                    AND (os.is_cancelled IS NOT TRUE)
+                ORDER BY 
+                    es.score DESC NULLS LAST,
+                    LENGTH(os.number_sprava) ASC, 
+                    os.number_sprava ASC
+            """
+            
+            self.cursor.execute(query, (specialty_name,))
+            applicants = self.cursor.fetchall()
+            
+            if not applicants:
+                self.show_error_message(f"Не знайдено абітурієнтів для спеціальності '{specialty_name}' ({form_type}).")
+                self.close_db()
+                return
+
+            # Фільтрація: залишаємо тільки тих, у кого однакові бали (як у мотиваційних листах)
+            from collections import Counter
+            all_scores = [s[2] for s in applicants if s[2] is not None]
+            score_counts = Counter(all_scores)
+            
+            filtered_applicants = [s for s in applicants if s[2] is not None and score_counts[s[2]] > 1]
+            
+            if not filtered_applicants:
+                self.show_error_message(f"Не знайдено абітурієнтів з однаковими балами для спеціальності '{specialty_name}'.")
+                self.close_db()
+                return
+
+            items = []
+            for i, s in enumerate(filtered_applicants):
+                items.append({
+                    "index": i + 1,
+                    "full_name": s[0],
+                    "score": s[2],
+                    "gpa_score": s[3] if s[3] is not None else ""
+                })
+            
+            context = {
+                **self._get_common_data(),
+                "specialty_name": spec_display,
+                "items": items
+            }
+
+            items = []
+            for i, s in enumerate(filtered_applicants):
+                items.append({
+                    "index": i + 1,
+                    "full_name": s[0],
+                    "score": s[2],
+                    "gpa_score": s[3] if s[3] is not None else "",
+                    "gpa_rank": s[3] if s[3] is not None else "" # Використовуйте {{ item.gpa_rank }} у шаблоні
+                })
+            
+            context = {
+                **self._get_common_data(),
+                "specialty_name": spec_display,
+                "items": items
+            }
+
+            template_path = "templates/rezult_gpa_ranking.docx"
+            self.fill_and_save_template(template_path, context, dialog, "Ранжування за сер. балом успішно збережено!")
+            self.close_db()
+
+        except Exception as e:
+            self.show_error_message(f"Помилка при створенні ранжування: {str(e)}")
+            self.close_db()
+
     def print_rating_list_all_forms(self, specialty_name, form_type, dialog):
         """Друк рейтингових списків з пріоритетами та відсічками."""
         try:
@@ -475,7 +579,7 @@ class DocumentPrinter:
                     pd.last_name || ' ' || pd.first_name || ' ' || COALESCE(pd.middle_name, '') AS full_name,
                     os.number_sprava,
                     es.score,
-                    es.motivation_rank,
+                    es.gpa_score,
                     COALESCE(id.is_interview, false) as is_interview
                 FROM 
                     {table_cases} os
@@ -491,7 +595,7 @@ class DocumentPrinter:
                 ORDER BY 
                     CASE WHEN COALESCE(id.is_interview, false) THEN 0 ELSE 1 END ASC,
                     es.score DESC NULLS LAST,
-                    es.motivation_rank ASC NULLS LAST,
+                    es.gpa_score DESC NULLS LAST,
                     LENGTH(os.number_sprava) ASC,
                     os.number_sprava ASC
             """
@@ -520,7 +624,9 @@ class DocumentPrinter:
                 items.append({
                     "index": real_index,
                     "full_name": s[0],
-                    "display_score": display_score
+                    "display_score": display_score,
+                    "score": s[2] if s[2] is not None else "",
+                    "gpa_score": s[3] if s[3] is not None else ""
                 })
 
                 # Визначаємо колір (рядки в таблиці Word починаються з 0, дані з 1)
