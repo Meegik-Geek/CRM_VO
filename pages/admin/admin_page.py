@@ -33,6 +33,7 @@ from pages.admin.zaoch.entrance_examination_zaoch import ListExamZao
 
 from pages.admin.student.student_input_list import ListInputStudent
 from pages.admin.student.reports.student_druk_denne import StudentDrukDen
+from pages.admin.charts.charts_page import ChartsPage
 from pages.admin.settings_page import SettingsPage
 from pages.admin.updates_page import UpdatesPage
 
@@ -107,6 +108,8 @@ class InputAdminPage(QMainWindow):
         self.add_menu_item("Звіти вступної кампанії")
         self.add_menu_item("Журнали вступної кампанії")
         self.add_menu_item("Протоколи/Допуски вступної кампанії")
+        self.add_section("Аналітика", bold=True)
+        self.add_menu_item("Графіки")
         self.add_section("Студенти", bold=True)
         self.add_menu_item("Створення типу фінансування та груп")
         self.add_menu_item("Витяги, звіти студентів")
@@ -174,6 +177,7 @@ class InputAdminPage(QMainWindow):
                 "Звіти вступної кампанії": AdminZvitCamp,
                 "Журнали вступної кампанії": AdminJournalCamp,
                 "Протоколи/Допуски вступної кампанії": AdminProtocolCamp,
+                "Графіки": ChartsPage,
                 "Створення типу фінансування та груп": ListInputStudent,
                 "Витяги, звіти студентів": StudentDrukDen,
                 "Налаштування системи": SettingsPage,
