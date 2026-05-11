@@ -210,7 +210,7 @@ class AdminSetupPage(QWizardPage):
 class IntroPage(QWizardPage):
     def __init__(self):
         super().__init__()
-        self.setTitle("Ласкаво просимо до Вступ 2026")
+        self.setTitle("Ласкаво просимо до CRM Вступ.Офіс")
         layout = QVBoxLayout(self)
         label = QLabel(
             "Цей майстер допоможе вам налаштувати систему для першого запуску.\n\n"

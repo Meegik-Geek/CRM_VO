@@ -361,9 +361,14 @@ class UpdatesPage(QWidget):
 
 
     def _get_server_unc_path(self):
+        import socket
+        hostname = socket.gethostname()
         db_host = os.getenv('DB_HOST', 'localhost')
+        
+        # Якщо ми на сервері (localhost), використовуємо ім'я комп'ютера для мережевого шляху
         if db_host == 'localhost' or db_host == '127.0.0.1':
-            return r"C:\CRM_VO_Updater\update.zip"
+            return rf"\\{hostname}\CRM_VO_Updater\update.zip"
+            
         return rf"\\{db_host}\CRM_VO_Updater\update.zip"
 
     def deploy_local_from_github(self):
@@ -391,13 +396,25 @@ class UpdatesPage(QWidget):
 
             
         try:
-            target_path = self._get_server_unc_path()
-            target_dir = os.path.dirname(target_path)
-            if not os.path.exists(target_dir):
-                os.makedirs(target_dir, exist_ok=True)
+            import socket
+            hostname = socket.gethostname()
+            db_host = os.getenv('DB_HOST', 'localhost')
+            
+            # Шлях для бази (завжди мережевий)
+            if db_host == 'localhost' or db_host == '127.0.0.1':
+                db_path = rf"\\{hostname}\CRM_VO_Updater\update.zip"
+                local_dir = r"C:\CRM_VO_Updater"
+            else:
+                db_path = rf"\\{db_host}\CRM_VO_Updater\update.zip"
+                local_dir = rf"\\{db_host}\CRM_VO_Updater"
+
+            target_path = os.path.join(local_dir, "update.zip")
+            
+            if not os.path.exists(local_dir):
+                os.makedirs(local_dir, exist_ok=True)
                 
             shutil.move("temp_update.zip", target_path)
-            self.update_db_settings(self.latest_github_version, "LOCAL", target_path)
+            self.update_db_settings(self.latest_github_version, "LOCAL", db_path)
         except Exception as e:
             show_error_msg(self, f"Не вдалося скопіювати файл на сервер:\n{e}", "Помилка файлової системи")
 
@@ -438,12 +455,24 @@ class UpdatesPage(QWidget):
         if not reply: return
         
         try:
-            target_path = self._get_server_unc_path()
-            target_dir = os.path.dirname(target_path)
-            if not os.path.exists(target_dir):
-                os.makedirs(target_dir, exist_ok=True)
+            import socket
+            hostname = socket.gethostname()
+            db_host = os.getenv('DB_HOST', 'localhost')
+            
+            # Шлях для бази (завжди мережевий)
+            if db_host == 'localhost' or db_host == '127.0.0.1':
+                db_path = rf"\\{hostname}\CRM_VO_Updater\update.zip"
+                local_dir = r"C:\CRM_VO_Updater"
+            else:
+                db_path = rf"\\{db_host}\CRM_VO_Updater\update.zip"
+                local_dir = rf"\\{db_host}\CRM_VO_Updater"
+
+            target_path = os.path.join(local_dir, "update.zip")
+            
+            if not os.path.exists(local_dir):
+                os.makedirs(local_dir, exist_ok=True)
                 
             shutil.copy2(file_path, target_path)
-            self.update_db_settings(new_version, "LOCAL", target_path)
+            self.update_db_settings(new_version, "LOCAL", db_path)
         except Exception as e:
             show_error_msg(self, f"Не вдалося скопіювати файл на сервер:\n{e}", "Помилка файлової системи")
