@@ -170,6 +170,7 @@ CREATE TABLE IF NOT EXISTS entrance_examinations_day (
     id SERIAL PRIMARY KEY,
     name_specialnosti TEXT,
     type_examen TEXT,
+    name_examen TEXT, -- Назва предметів (наприклад, "Укр. мова та математика")
     date_examen DATE,
     time_examen VARCHAR(20)
 );
@@ -206,30 +207,34 @@ CREATE TABLE IF NOT EXISTS student (
 -- 6. ПОЧАТКОВІ ДАНІ (SEED DATA)
 
 INSERT INTO settings (key, value, description) VALUES 
-('college_name', 'Назва вашого навчального закладу', 'Використовується в заголовках програми та звітах'),
-('current_version', '1.0.0', 'Версія ПЗ'),
-('update_source', 'https://example.com/updates', 'Шлях до сервера оновлень'),
-('backup_path', 'C:\\Vstup_Backups', 'Шлях до папки для резервних копій БД'),
-('backup_frequency', 'daily', 'Частота бекапу (3h, daily, weekly, off)'),
-('backup_time', '00:00', 'Час щоденного бекапу (HH:MM)'),
+('college_name', 'Назва навчального закладу', 'Повна назва закладу'),
+('college_short_name', 'Скор. назва', 'Скорочена назва закладу'),
+('current_version', '1.0.4', 'Версія ПЗ'),
+('update_source', 'https://github.com/', 'Шлях до сервера оновлень'),
+('backup_path', 'C:\\CRM_Backups', 'Шлях до папки для резервних копій БД'),
+('backup_frequency', 'daily', 'Частота бекапу'),
+('backup_time', '00:00', 'Час щоденного бекапу'),
 ('backup_last_run', '', 'Дата останнього успішного запуску бекапу'),
-('global_latest_version', '1.0.0-0', 'Глобальна версія системи на GitHub'),
-('admin_approved_version', '1.0.0-0', 'Версія, яку затвердив адміністратор'),
-('update_delivery_method', 'NONE', 'Як роздавати: LOCAL, INTERNET, NONE'),
-('update_path', '', 'Шлях для оновлення (UNC папка сервера або URL-посилання)');
+('global_latest_version', '1.0.4-0', 'Глобальна версія'),
+('admin_approved_version', '1.0.4-0', 'Затверджена версія'),
+('update_delivery_method', 'NONE', 'Спосіб оновлення'),
+('update_path', '', 'Шлях для оновлення'),
+('resp_secretary', '', 'Відповідальний секретар ПК'),
+('deputy_secretary', '', 'Заступник відп. секретаря ПК'),
+('legal_counsel', '', 'Юрисконсульт'),
+('edebo_admin', '', 'Адміністратор ЄДЕБО'),
+('pg_tools_path', '', 'Шлях до bin папки PostgreSQL');
 
 INSERT INTO institution_info (full_name, short_name) VALUES 
-('Ваш навчальний заклад', 'ВНЗ');
+('Повна назва закладу', 'Скор. назва');
 
-
-
--- 7. ���������ײ �� ����� �������
+-- 7. КОРИСТУВАЧІ ТА ПРАВА ДОСТУПУ
 CREATE TABLE IF NOT EXISTS system_users (
     id SERIAL PRIMARY KEY,
-    person_name TEXT, -- ϲ� ����������� �����
+    person_name TEXT, -- ПІП користувача
     login VARCHAR(100) UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
-    permissions JSONB DEFAULT '{}', -- ����� ������� �� ������
-    is_admin BOOLEAN DEFAULT FALSE, -- ������ ����������������
+    permissions JSONB DEFAULT '{}', -- Права доступу (JSON)
+    is_admin BOOLEAN DEFAULT FALSE, -- Статус адміна
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

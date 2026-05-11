@@ -17,10 +17,10 @@ class DocumentPrinter:
         return {
             "institution_name": get_setting("college_name", "Назва закладу"),
             "institution_short_name": get_setting("college_short_name", "Скорочена назва"),
-            "resp_secretary": get_setting("resp_secretary", "Людмила ЧАЙКА"),
-            "deputy_secretary": get_setting("deputy_secretary", "Костянтин СИДОРУК"),
-            "legal_counsel": get_setting("legal_counsel", "Тетяна ДЕНІСОВА"),
-            "edebo_admin": get_setting("edebo_admin", "Наталія ХОРУНЖА"),
+            "resp_secretary": get_setting("resp_secretary", ""),
+            "deputy_secretary": get_setting("deputy_secretary", ""),
+            "legal_counsel": get_setting("legal_counsel", ""),
+            "edebo_admin": get_setting("edebo_admin", ""),
         }
 
     def fill_and_print_template(self, template_path, data, dialog, success_message):

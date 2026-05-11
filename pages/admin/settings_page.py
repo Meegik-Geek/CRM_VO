@@ -278,12 +278,12 @@ class SettingsPage(QWidget):
             # Завантаження налаштувань бекапу та посадових осіб
             all_s = self.settings_repo.get_all_settings()
             
-            self.resp_secretary.setText(all_s.get("resp_secretary", "Людмила ЧАЙКА"))
-            self.deputy_secretary.setText(all_s.get("deputy_secretary", "Костянтин СИДОРУК"))
-            self.legal_counsel.setText(all_s.get("legal_counsel", "Тетяна ДЕНІСОВА"))
-            self.edebo_admin.setText(all_s.get("edebo_admin", "Наталія ХОРУНЖА"))
+            self.resp_secretary.setText(all_s.get("resp_secretary", ""))
+            self.deputy_secretary.setText(all_s.get("deputy_secretary", ""))
+            self.legal_counsel.setText(all_s.get("legal_counsel", ""))
+            self.edebo_admin.setText(all_s.get("edebo_admin", ""))
 
-            self.backup_path.setText(all_s.get("backup_path", "C:\\Vstup_Backups"))
+            self.backup_path.setText(all_s.get("backup_path", "C:\\CRM_Backups"))
             self.pg_tools_path.setText(all_s.get("pg_tools_path", ""))
             
             freq_key = all_s.get("backup_frequency", "off")

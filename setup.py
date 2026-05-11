@@ -5,7 +5,8 @@ from cx_Freeze import setup, Executable
 import site
 
 # Set base for Windows GUI application (hides console window)
-base = "Win32GUI" if sys.platform == "win32" else None
+base = "gui" if sys.platform == "win32" else None
+
 
 # Define build options for cx_Freeze
 build_exe_options = {
@@ -27,9 +28,8 @@ build_exe_options = {
         ("db", "db"),                      # DB folder
         ("implement", "implement"),        # Implement folder
         ("version.txt", "version.txt"),    # Version file
-        ("updater.exe", "updater.exe"),
-        ("host.txt", "host.txt"),          # Host configuration
     ],
+
     "include_msvcr": True,                 # Include Microsoft Visual C++ runtime
     "excludes": [
         "PyQt5.QtQml",                    # Exclude unused PyQt5 modules
@@ -80,16 +80,22 @@ for src, dest in build_exe_options["include_files"]:
         print(f"✅ {src} → {dest}")
 # Setup configuration
 setup(
-    name="MyApp",
-    version="1.0",
-    description="Вступна система",
-    author="Your Name",  # Optional: add your name or organization
+    name="CRM_Vstup_Office",
+    version="1.0.4",
+    description="Система автоматизації вступної кампанії",
+    author="Meegik-Geek",
     options={"build_exe": build_exe_options},
     executables=[
         Executable(
             script="main.py",
             base=base,
             target_name="main.exe",
+            icon="resource/logo.ico" if os.path.exists("resource/logo.ico") else None,
+        ),
+        Executable(
+            script="installer_wizard.py",
+            base=base,
+            target_name="installer.exe",
             icon="resource/logo.ico" if os.path.exists("resource/logo.ico") else None,
         )
     ],

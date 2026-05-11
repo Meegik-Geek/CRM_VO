@@ -1,5 +1,5 @@
 PyQt5
-psycopg2-binary
+psycopg2
 pandas
 docxtpl
 openpyxl
@@ -8,3 +8,4 @@ numpy
 python-dotenv
 requests
 matplotlib
+cx_Freeze
