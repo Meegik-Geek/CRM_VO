@@ -220,7 +220,7 @@ class StudentDrukDen(QWidget):
         scroll_area.setObjectName("scrollArea")
         scroll_area.setWidgetResizable(True)
         container = QWidget()
-        form_layout = QFormLayout(container)
+        form_layout = QFormLayout(container); form_layout.setLabelAlignment(Qt.AlignLeft); form_layout.setFormAlignment(Qt.AlignLeft)
 
         group_box = QGroupBox("Друк студентських документів")
         group_box.setObjectName("groupBox")
@@ -230,18 +230,18 @@ class StudentDrukDen(QWidget):
 
         # Загальний опис по центру
         self.general_desc_label = QLabel("Оберіть тип студентського документа, щоб переглянути його призначення та сформувати файл.", self)
+        self.general_desc_label.setObjectName("generalDescLabel")
         self.general_desc_label.setWordWrap(True)
         self.general_desc_label.setAlignment(Qt.AlignCenter)
-        self.general_desc_label.setStyleSheet("color: #888; font-size: 16px; font-style: italic;")
         self.button_layout.addWidget(self.general_desc_label)
 
         # Специфічний опис (прихований спочатку)
         self.report_desc_label = QLabel("", self)
+        self.report_desc_label.setObjectName("reportDescription")
         self.report_desc_label.setWordWrap(True)
         self.report_desc_label.setAlignment(Qt.AlignCenter)
         self.report_desc_label.setFixedWidth(700)
         self.report_desc_label.setMinimumHeight(70)
-        self.report_desc_label.setStyleSheet("font-size: 15px; color: #333; line-height: 1.5; margin-bottom: 10px; padding: 5px;")
         self.report_desc_label.setVisible(False)
         self.button_layout.addWidget(self.report_desc_label, alignment=Qt.AlignCenter)
 

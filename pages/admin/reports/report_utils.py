@@ -13,7 +13,7 @@ class PrintDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle(title)
         self.setModal(True)
-        self.setMinimumSize(250, 150)
+        self.setMinimumSize(350, 220)
         self.print_handler = print_handler
         self.fields = {}
         self.conn = setup_database()
@@ -63,7 +63,7 @@ class PrintDialog(QDialog):
         self.save_btn = QPushButton("Зберегти", self)
         self.save_btn.setObjectName("printButton") # Зелений стиль
         self.save_btn.setCursor(QCursor(Qt.PointingHandCursor))
-        self.save_btn.setFixedSize(110, 40)
+        self.save_btn.setMinimumSize(120, 45)
         self.save_btn.clicked.connect(lambda: self.print_handler(self))
         buttons_layout.addWidget(self.save_btn)
         layout.addLayout(buttons_layout)
@@ -141,7 +141,7 @@ class BaseReportPage(QWidget):
         scroll_area.setObjectName("scrollArea")
         scroll_area.setWidgetResizable(True)
         container = QWidget()
-        form_layout = QFormLayout(container)
+        form_layout = QFormLayout(container); form_layout.setLabelAlignment(Qt.AlignLeft); form_layout.setFormAlignment(Qt.AlignLeft)
 
         self.document_group = QGroupBox(self.group_title)
         self.document_group.setObjectName("groupBox")
@@ -156,7 +156,6 @@ class BaseReportPage(QWidget):
         self.general_desc_label.setObjectName("generalDescLabel")
         self.general_desc_label.setWordWrap(True)
         self.general_desc_label.setAlignment(Qt.AlignCenter)
-        self.general_desc_label.setStyleSheet("color: #888; font-size: 16px; font-style: italic;")
         self.button_layout.addWidget(self.general_desc_label)
 
         self.button_layout.addStretch(1) # Пружина знизу
@@ -205,7 +204,6 @@ class BaseReportPage(QWidget):
             desc_label.setAlignment(Qt.AlignCenter)
             desc_label.setFixedWidth(700)
             desc_label.setMinimumHeight(70) 
-            desc_label.setStyleSheet("font-size: 15px; color: #333; line-height: 1.5; margin-bottom: 10px; padding: 5px;")
             container_layout.addWidget(desc_label, alignment=Qt.AlignCenter)
 
         btn = QPushButton(text, self)

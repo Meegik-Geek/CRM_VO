@@ -47,15 +47,14 @@ class PrintDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle(title)
         self.setModal(True)
-        self.resize(300, 150)
+        self.setMinimumSize(320, 200)
         self.print_handler = print_handler
         self.fields = {}
         self.init_ui(extra_fields)
 
     def init_ui(self, extra_fields):
         """Ініціалізує компоненти інтерфейсу діалогу."""
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(10, 10, 10, 20)
+        layout = QVBoxLayout(self); layout.setContentsMargins(15, 15, 15, 15); layout.setSpacing(10)
 
         self.fields['Номер справи'] = QLineEdit(self)
         self.fields['Номер справи'].setObjectName("inputField")
@@ -72,7 +71,7 @@ class PrintDialog(QDialog):
                 layout.addWidget(self.fields[field_name])
 
         # Кнопки для перегляду та друку
-        buttons_layout = QHBoxLayout()
+        buttons_layout = QHBoxLayout(); buttons_layout.setContentsMargins(0, 0, 0, 0); buttons_layout.setSpacing(10)
        
 
         self.print_btn = QPushButton("Друк", self)
@@ -105,11 +104,11 @@ class DrukDocumentDen(QWidget):
         self.init_ui()
 
     def init_ui(self):
-        layout = QVBoxLayout(self)
+        layout = QVBoxLayout(self); layout.setContentsMargins(10, 10, 10, 10); layout.setSpacing(10)
         layout.setAlignment(Qt.AlignTop)
 
         layout.addWidget(QLabel("Форма для друку документів", self))
-        button_layout = QHBoxLayout()
+        button_layout = QHBoxLayout(); button_layout.setContentsMargins(0, 20, 0, 0); button_layout.setSpacing(10)
         button_layout.addWidget(self.create_main_button("Анкета вступника", self.show_anketa_buttons))
         button_layout.addWidget(self.create_main_button("Опис особової справи", self.show_osobova_sprava_button))
         button_layout.addWidget(self.create_main_button("Титулка особової справи", self.show_titulka_button))
@@ -119,10 +118,10 @@ class DrukDocumentDen(QWidget):
 
         layout.addLayout(button_layout)
 
-        scroll_area = QScrollArea(self)
+        scroll_area = QScrollArea(self); scroll_area.setFrameShape(QScrollArea.NoFrame); scroll_area.setViewportMargins(0, 0, 0, 0); scroll_area.setContentsMargins(0, 0, 0, 0)
         scroll_area.setWidgetResizable(True)
-        container = QWidget()
-        form_layout = QFormLayout(container)
+        container = QWidget(); container.setObjectName("formContainer")
+        form_layout = QFormLayout(container); form_layout.setLabelAlignment(Qt.AlignLeft); form_layout.setFormAlignment(Qt.AlignLeft); form_layout.setLabelAlignment(Qt.AlignLeft); form_layout.setFormAlignment(Qt.AlignLeft); form_layout.setContentsMargins(0, 0, 0, 0); form_layout.setSpacing(10)
 
         document_data_group = QGroupBox("Друку документів вступника")
         document_data_group.setObjectName("groupBox")

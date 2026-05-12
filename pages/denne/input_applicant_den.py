@@ -15,7 +15,7 @@ class InputApplicantDen(QWidget):
         super(InputApplicantDen, self).__init__()
 
         # Основний лейаут
-        layout = QVBoxLayout(self)
+        layout = QVBoxLayout(self); layout.setContentsMargins(10, 10, 10, 10); layout.setSpacing(10)
 
         # Заголовок
         label = QLabel("Форма для введення нового вступника", self)
@@ -23,7 +23,7 @@ class InputApplicantDen(QWidget):
         layout.addWidget(label)
 
         # Пошук
-        search_layout = QHBoxLayout()
+        search_layout = QHBoxLayout(); search_layout.setContentsMargins(0, 0, 0, 0); search_layout.setSpacing(10)
         self.search_input = QLineEdit(self)
         self.search_input.setObjectName("searchInput")
         self.search_input.setPlaceholderText("Пошук за прізвищем, ім'ям або номером свідоцтва...")
@@ -49,25 +49,25 @@ class InputApplicantDen(QWidget):
         self.cancel_button.setObjectName("cancelButton")
         self.cancel_button.setCursor(QCursor(Qt.PointingHandCursor))
         self.cancel_button.setEnabled(False)
-        self.cancel_button.setStyleSheet("background-color: #E0E0E0; color: #707070;")
+
         self.cancel_button.clicked.connect(self.cancel_search)
         search_layout.addWidget(self.cancel_button)
 
         layout.addLayout(search_layout)
 
         # Прокручувана область
-        scroll_area = QScrollArea(self)
+        scroll_area = QScrollArea(self); scroll_area.setFrameShape(QScrollArea.NoFrame); scroll_area.setViewportMargins(0, 0, 0, 0); scroll_area.setContentsMargins(0, 0, 0, 0)
         scroll_area.setWidgetResizable(True)
-        container = QWidget()
-        form_layout = QFormLayout(container)
+        container = QWidget(); container.setObjectName("formContainer")
+        form_layout = QVBoxLayout(container); form_layout.setContentsMargins(0, 0, 0, 0); form_layout.setSpacing(10)
 
         # Група 1: Персональні дані
         personal_data_group = QGroupBox("Персональні дані вступника")
         personal_data_group.setObjectName("groupBox")
-        personal_form_layout = QFormLayout()
+        personal_form_layout = QFormLayout(); personal_form_layout.setLabelAlignment(Qt.AlignLeft); personal_form_layout.setFormAlignment(Qt.AlignLeft); personal_form_layout.setContentsMargins(0, 0, 0, 0); personal_form_layout.setSpacing(10)
 
         # ПІБ
-        name_layout = QHBoxLayout()
+        name_layout = QHBoxLayout(); name_layout.setContentsMargins(0, 0, 0, 0); name_layout.setSpacing(10)
         self.last_name_input = self.create_input_field()
         self.first_name_input = self.create_input_field()
         self.middle_name_input = self.create_input_field()
@@ -91,7 +91,7 @@ class InputApplicantDen(QWidget):
         personal_form_layout.addRow("ПІП родовий відмінок <span style='color: red;'>*</span>:", self.pip_input)
 
         # Свідоцтво
-        cert_layout = QHBoxLayout()
+        cert_layout = QHBoxLayout(); cert_layout.setContentsMargins(0, 0, 0, 0); cert_layout.setSpacing(10)
         self.cert_number_input = self.create_input_field(validator=QRegExpValidator(QRegExp(r"[А-ЯІЇЄҐ№ 0-9]*"), self))
         self.cert_number_input.setObjectName("inputField")
         self.cert_number_input.setInputMask("AA №00000000")  # Маска з пробілом перед "№"
@@ -124,7 +124,7 @@ class InputApplicantDen(QWidget):
 
 
         # Контакти та громадянство
-        contact_layout = QHBoxLayout()
+        contact_layout = QHBoxLayout(); contact_layout.setContentsMargins(0, 0, 0, 0); contact_layout.setSpacing(10)
         self.phone_input = self.create_input_field()
         self.phone_input.setObjectName("inputField")
         self.phone_input.setInputMask("+380#########")
@@ -147,7 +147,7 @@ class InputApplicantDen(QWidget):
         personal_form_layout.addRow(contact_layout)
 
         # Паспорт
-        passport_layout = QHBoxLayout()
+        passport_layout = QHBoxLayout(); passport_layout.setContentsMargins(0, 0, 0, 0); passport_layout.setSpacing(10)
         self.passport_number_input = self.create_input_field( validator=QRegExpValidator(QRegExp(r"^[А-ЯІЇЄҐ]{0,2}\d{6,9}$|^$"), self))
         self.passport_number_input.setObjectName("inputField")
         self.passport_number_input.setPlaceholderText("123456789 або AA123456")
@@ -177,7 +177,7 @@ class InputApplicantDen(QWidget):
         # Група 2: Дані батьків
         parents_data_group = QGroupBox("Дані батьків")
         parents_data_group.setObjectName("groupBox")
-        parents_layout = QHBoxLayout()
+        parents_layout = QHBoxLayout(); parents_layout.setContentsMargins(0, 0, 0, 0); parents_layout.setSpacing(10)
 
         father_layout = QVBoxLayout()
         father_layout.addWidget(QLabel("Прізвище батька:"))
@@ -244,7 +244,7 @@ class InputApplicantDen(QWidget):
         # Група 3: Оцінки
         grades_group = QGroupBox("Оцінки")
         grades_group.setObjectName("groupBox")
-        grades_form_layout = QHBoxLayout()
+        grades_form_layout = QHBoxLayout(); grades_form_layout.setContentsMargins(0, 0, 0, 0); grades_form_layout.setSpacing(10)
         self.algebra_input = self.create_input_field(validator=QIntValidator(1, 12, self))
         self.geometry_input = self.create_input_field(validator=QIntValidator(1, 12, self))
         self.ukr_language_input = self.create_input_field(validator=QIntValidator(1, 12, self))
@@ -270,7 +270,7 @@ class InputApplicantDen(QWidget):
         # Група 4: Інші дані
         other_data_group = QGroupBox("Інші дані")
         other_data_group.setObjectName("groupBox")
-        other_data_form_layout = QFormLayout()
+        other_data_form_layout = QFormLayout(); other_data_form_layout.setLabelAlignment(Qt.AlignLeft); other_data_form_layout.setFormAlignment(Qt.AlignLeft); other_data_form_layout.setContentsMargins(0, 0, 0, 0); other_data_form_layout.setSpacing(10)
         other_data_form_layout.setLabelAlignment(Qt.AlignLeft)
         other_data_form_layout.setFormAlignment(Qt.AlignLeft)
         self.hostel_need_input = QComboBox(self)
@@ -293,21 +293,23 @@ class InputApplicantDen(QWidget):
         layout.addWidget(scroll_area)
 
         # Кнопки
+        button_layout = QHBoxLayout(); button_layout.setContentsMargins(0, 20, 0, 0); button_layout.setSpacing(10)
+        
         self.input_button = QPushButton("Ввести нового вступника", self)
-        self.input_button.setObjectName("inputButton")
+        self.input_button.setObjectName("greenButton")
         self.input_button.setEnabled(False)
         self.input_button.setCursor(QCursor(Qt.PointingHandCursor))
-        self.input_button.setStyleSheet("background-color: #E0E0E0; color: #adadad;")
         self.input_button.clicked.connect(self.submit_applicant_data)
-        layout.addWidget(self.input_button)
+        button_layout.addWidget(self.input_button)
 
         self.edit_button = QPushButton("Редагувати вступника", self)
         self.edit_button.setObjectName("editButton")
         self.edit_button.setEnabled(False)
         self.edit_button.setCursor(QCursor(Qt.PointingHandCursor))
-        self.edit_button.setStyleSheet("background-color: #E0E0E0; color: #adadad;")
         self.edit_button.clicked.connect(self.edit_applicant_data)
-        layout.addWidget(self.edit_button)
+        button_layout.addWidget(self.edit_button)
+
+        layout.addLayout(button_layout)
 
         # Повідомлення
         self.message_label = QLabel(self)
@@ -454,11 +456,8 @@ class InputApplicantDen(QWidget):
             if applicant:
                 self.populate_fields(applicant)
                 self.edit_button.setEnabled(True)
-                self.edit_button.setStyleSheet("background-color: #FFA500; color: white;")
                 self.cancel_button.setEnabled(True)
-                self.cancel_button.setStyleSheet("font-size: 13px; background-color: #FF9999; color: white;")
                 self.input_button.setEnabled(False)
-                self.input_button.setStyleSheet("background-color: #E0E0E0; color: #adadad;")
                 show_success(self, "Вступника знайдено!")
             else:
                 show_error(self, "Вступника не знайдено.")
@@ -540,11 +539,8 @@ class InputApplicantDen(QWidget):
         self.hostel_need_input.setCurrentIndex(0)
         self.gender_input.setCurrentIndex(0)
         self.input_button.setEnabled(False)
-        self.input_button.setStyleSheet("background-color: #E0E0E0; color: #adadad;")
         self.edit_button.setEnabled(False)
-        self.edit_button.setStyleSheet("background-color: #E0E0E0; color: #adadad;")
         self.cancel_button.setEnabled(False)
-        self.cancel_button.setStyleSheet("background-color: #E0E0E0; color: #adadad;")
 
     def cancel_search(self):
         """Скасовує пошук і очищає форму."""
@@ -595,23 +591,16 @@ class InputApplicantDen(QWidget):
         if self.edit_button.isEnabled():
             # Режим редагування після пошуку
             self.input_button.setEnabled(False)
-            self.input_button.setStyleSheet("background-color: #E0E0E0; color: #adadad;")
             self.edit_button.setEnabled(True)
-            self.edit_button.setStyleSheet("background-color: #FFA500; color: white;")
             self.cancel_button.setEnabled(True)
-            self.cancel_button.setStyleSheet(" background-color: #FF9999; color: white;")
         else:
             # Режим введення нового вступника
             if is_fields_filled:
                 self.input_button.setEnabled(True)
-                self.input_button.setStyleSheet("background-color: #32CD32; color: white;")
             else:
                 self.input_button.setEnabled(False)
-                self.input_button.setStyleSheet("background-color: #E0E0E0; color: #adadad;")
                 self.edit_button.setEnabled(False)
-                self.edit_button.setStyleSheet("background-color: #E0E0E0; color: #adadad;")
                 self.cancel_button.setEnabled(False)
-                self.cancel_button.setStyleSheet("background-color: #E0E0E0; color: #adadad;")
 
     def submit_applicant_data(self):
         """Збирає дані з форми та зберігає нового вступника через репозиторій."""

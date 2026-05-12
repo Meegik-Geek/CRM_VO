@@ -1,5 +1,8 @@
+/* === БАЗОВА СТРУКТУРА (Без кольорів) === */
+
 QMainWindow {
     font-family: Inter, Arial, sans-serif;
+    padding: 10px;
 }
 
 QDialog {
@@ -9,211 +12,142 @@ QDialog {
 
 QWidget {
     background-color: transparent;
+    outline: none;
+}
+
+QScrollArea, QFrame {
+    border: none;
+    background-color: transparent;
+    padding: 0px;
+    margin: 0px;
+}
+
+QScrollArea > QWidget > QWidget {
+    padding: 0px;
+    margin: 0px;
+}
+
+QScrollArea #formContainer {
+    padding: 0px;
+    margin: 0px;
 }
 
 QLabel {
     font-weight: 400;
+    margin-top: 2px; /* Додано відступ для написів */
 }
 
 QLabel#titleLabel {
     font-weight: 600;
-    text-align: center
 }
 
 QLabel#adminTitleLabel {
     font-weight: 600;
 }
 
-QLabel#errorLabel {
-    font-weight: 400;
+QLabel#generalDescLabel {
+    font-style: italic;
+    font-size: 16px;
+}
+
+QLabel#reportDescription {
+    font-size: 15px;
+    line-height: 1.5;
+    margin-bottom: 10px;
+    padding: 5px;
 }
 
 QPushButton {
     border: none;
     border-radius: 6px;
-    padding: 10px;
+    padding: 6px 10px;
     font-weight: 400;
 }
 
-QPushButton#navButton {
-    background-color: #2979FF;
-    color: #FFFFFF;
-}
-QPushButton#searchButton {
-  background-color: #3895e0;
-  color: white;  
-}
-QPushButton#clearButton {
-  background-color: #FF5555;
-  color: white;  
-}
-QPushButton#navButton:hover {
-    background-color: #1976D2;
-}
-
-QPushButton#navButton:pressed {
-    background-color: #1565C0;
-}
-
-QPushButton#greenButton {
-    background-color: #4CAF50;
-    color: #FFFFFF;
-}
-
-QPushButton#greenButton:hover {
-    background-color: #388E3C;
-}
-
-QPushButton#greenButton:pressed {
-    background-color: #2E7D32;
-}
-
 QPushButton#iconButton {
-    background-color: transparent;
     border: none;
     padding: 4px;
-    color: transparent;
-}
-
-QPushButton#iconButton:hover {
-    background-color: rgba(0, 0, 0, 0.05);
-}
-
-QPushButton#iconButton:pressed {
-    background-color: rgba(0, 0, 0, 0.1);
 }
 
 QPushButton#logButton, QPushButton#mainButton, QPushButton#previewButton {
-    background-color: #2979FF;
-    color: #FFFFFF;
     border: none;
     border-radius: 4px;
     padding: 6px;
     font-weight: 400;
 }
 
-QPushButton#logButton:hover, QPushButton#mainButton:hover, QPushButton#previewButton:hover {
-    background-color: #1976D2;
-}
-
-QPushButton#logButton:pressed, QPushButton#mainButton:pressed, QPushButton#previewButton:pressed {
-    background-color: #1565C0;
-}
-
-QPushButton#loginButton, QPushButton#printButton {
-    background-color: #43A047;
-    color: #FFFFFF;
-}
-
-QPushButton#loginButton:hover, QPushButton#printButton:hover {
-    background-color: #388E3C;
-}
-
-QPushButton#loginButton:pressed, QPushButton#printButton:pressed {
-    background-color: #2E7D32;
-}
-
-QPushButton#loginButton:disabled, QPushButton#printButton:disabled {
-    background-color: #BDBDBD;
-    color: #757575;
-}
-
-QPushButton#drukButton {
-    background-color: #E3F2FD;
-    color: #1E1E1E;
-}
-
-QPushButton#drukButton:hover {
-    background-color: #BBDEFB;
-}
-
-QPushButton#drukButton:pressed {
-    background-color: #90CAF9;
-}
-
-QPushButton#errorButton {
-    background-color: #E53935;
-    color: #FFFFFF;
-}
-
-QPushButton#errorButton:hover {
-    background-color: #D32F2F;
-}
-
-QPushButton#errorButton:pressed {
-    background-color: #B71C1C;
-}
-
-QPushButton:disabled {
-    background-color: #E0E0E0;
-    color:#adadad;
-}
-
-QLineEdit {
-    border: 1px solid;
+QLineEdit, QAbstractSpinBox, QTimeEdit, QDateEdit, QDateTimeEdit {
+    border-style: solid;
+    border-width: 1px;
     border-radius: 6px;
     padding: 5px;
+    margin-bottom: 2px;
 }
 
-QLineEdit#usernameInput,
-QLineEdit#passwordInput,
-QLineEdit#inputField {
-    font-weight: 400;
+QAbstractSpinBox::up-button, QAbstractSpinBox::down-button {
+    background-color: transparent;
+    border: none;
+    width: 20px;
 }
 
-QLineEdit:focus {
-    border: 1px solid #2979FF;
+QAbstractSpinBox::up-arrow, QAbstractSpinBox::down-arrow {
+    width: 6px;
+    height: 6px;
+    border-style: solid;
+    border-color: #333;
+}
+
+QAbstractSpinBox::up-arrow {
+    border-width: 2px 2px 0 0;
+    margin-top: 3px;
+}
+
+QAbstractSpinBox::down-arrow {
+    border-width: 0 0 2px 2px;
+    margin-bottom: 3px;
 }
 
 QComboBox {
-    border: 1px solid;
+    border-style: solid;
+    border-width: 1px;
     border-radius: 6px;
-    padding: 8px;
+    padding: 4px 8px;
+    margin-bottom: 2px;
 }
 
-/* Наведення на весь комбобокс */
-QComboBox:hover {
-    border: 1px solid #2979FF;
-}
-
-/* Видалення рамки у кнопки (стрілки) */
 QComboBox::drop-down {
-    border: none; /* Без рамки */
-    background: transparent; /* Прозорий фон */
+    border: none;
     width: 25px;
     subcontrol-origin: padding;
     subcontrol-position: top right;
-    margin-right: 4px; /* Відступ праворуч */
+    margin-right: 4px;
 }
 
-/* Стилізація стрілки */
 QComboBox::down-arrow {
     width: 7px;
     height: 7px;
-    border: solid #757575;
+    border-style: solid;
     border-width: 0 2px 2px 0;
-    
+    border-color: #333;
     margin: 0 6px 0 0;
 }
+
 QComboBox QAbstractItemView {
-    
-    border: 1px solid #2979FF;
+    border-style: solid;
+    border-width: 1px;
     border-radius: 6px;
-    background-color: #ffffff;
-    selection-background-color: #e6f0ff;
-    selection-color: #000000;
     outline: 0;
 }
-/* Для QTextEdit */
+
 QTextEdit {
-    border: 1px solid;
+    border-style: solid;
+    border-width: 1px;
     border-radius: 6px;
     padding: 8px;
+    margin-bottom: 2px;
 }
 
-/* Для підказки */
 QComboBox[placeholder-text] {
-    color: #757575;
     font-style: italic;
 }
 
@@ -222,130 +156,201 @@ QListWidget {
     border-radius: 4px;
 }
 
-QListWidget#tableList {
+QListWidget::item {
     border: none;
+    padding: 12px 16px;
+}
+
+QListWidget::item:selected {
+    border-right-style: solid;
+    border-right-width: 4px;
+    font-weight: 500;
+}
+
+QListWidget::item[role="section"] {
+    font-weight: 600;
+    padding: 10px;
+    border: none;
+    text-transform: uppercase;
+}
+
+QTableWidget { 
+    border-style: solid;
+    border-width: 1px;
+    border-radius: 6px;
+    outline: 0;
+}
+
+QTableWidget::item {
+    padding: 8px 5px;
+}
+
+QHeaderView::section { 
+    padding: 10px; 
+    border: none; 
+    font-weight: 600;
+}
+
+QHeaderView::section:horizontal {
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+}
+
+QTableWidget::item {
+    padding: 0px;
+    margin: 0px;
+}
+
+QHeaderView::section:vertical {
+    border-right-style: solid;
+    border-right-width: 1px;
+}
+
+QTableCornerButton::section {
+    border: none;
+}
+
+QTableWidget QLineEdit {
+    border: 1px solid #3498db;
+    margin: -2px;
+    padding: 0px 5px;
+    background-color: #ffffff;
+    border-radius: 0px;
+}
+
+QTableWidget QPushButton {
+    border-radius: 12px;
+    padding: 2px 10px;
+}
+
+/* Специфічні стилі для таблиці користувачів */
+#usersTable QLineEdit {
+    border: 1px solid #d1d5db;
+    margin: 5px;
+    border-radius: 6px;
+    background-color: #ffffff;
+    min-height: 30px;
+}
+
+#usersTable QPushButton {
+    margin: 5px 10px;
+    border-radius: 15px;
+    height: 32px;
+}
+
+QTableWidget::indicator {
+    width: 20px;
+    height: 20px;
+}
+
+QTableWidget::indicator:unchecked {
+    background-color: #ffffff;
+    border: 1px solid #d1d5db;
     border-radius: 4px;
 }
 
-QListWidget#tableList::item {
-    padding: 12px 16px;
+QTableWidget::indicator:checked {
+    background-color: #3498db;
+    border: 1px solid #2980b9;
+    border-radius: 4px;
+    image: url(resource/icons/check_white.png);
+}
+
+QTableWidget QComboBox {
+    border: 1px solid #3498db;
+    margin: -2px;
+    padding: 0px 5px;
+    background-color: #ffffff;
+    border-radius: 0px;
+}
+
+/* Скролбари - структура та кольори за замовчуванням */
+QScrollBar:vertical { 
+    border: none; 
+    width: 10px; 
+    margin: 0px;
+    background: #f1f1f1;
+}
+
+QScrollBar::handle:vertical { 
+    border-radius: 5px; 
+    min-height: 30px; 
+    background: #ccc;
+}
+
+QScrollBar::handle:vertical:hover {
+    background: #999;
+}
+
+QScrollBar:horizontal { 
+    border: none; 
+    height: 10px; 
+    margin: 0px;
+    background: #f1f1f1;
+}
+
+QScrollBar::handle:horizontal { 
+    border-radius: 5px; 
+    min-width: 30px; 
+    background: #ccc;
+}
+
+QScrollBar::handle:horizontal:hover {
+    background: #999;
+}
+
+QScrollBar::add-line, QScrollBar::sub-line,
+QScrollBar::add-page, QScrollBar::sub-page {
     border: none;
-}
-
-QListWidget#tableList::item:selected {
-    border-right: 4px solid;
-    font-weight: 500;
-}
-
-QListWidget#tableList::item:hover {
-    font-weight: 400;
-}
-
-QListWidget#tableList::item[role="section"] {
-    font-weight: 600;
-    padding: 10px;
-    border: none;
-    
-}
-
-QListWidget#navList {
-    border: none;
-    
-    padding: 0px;
-}
-
-QListWidget#navList::item {
-    padding: 12px 16px;
-    border: none;
-}
-
-QListWidget#navList::item:selected {
-    border-right: 4px solid;
-    font-weight: 500;
-}
-
-QListWidget#navList::item:hover {
-    font-weight: 400;
-}
-
-QListWidget#navList::item[role="section"] {
-    font-weight: 600;
-    padding: 10px;
-}
-
-QTableWidget { border: 1px solid #B0BEC5; border-radius: 6px; background-color: #FFFFFF; }
-
-
-QTableWidget::item:selected { font-weight: 500; background-color: #E3F2FD; color: #1E1E1E; }
-
-QTableWidget::item:focus {  border: 1px solid #2979FF; /* Тонкий бордер при фокусі */ }
-
-QTableWidget QLineEdit { border: 1px solid #B0BEC5; border-radius: 4px; background-color: #FFFFFF; color: #1E1E1E; font-family: Inter, Arial, sans-serif; font-weight: 400; }
-
-QTableWidget QLineEdit:focus { border: 1px solid #2979FF; }
-
-QHeaderView::section { padding: 8px; border: none; font-weight: 500; background-color: #F5F7FA; }
-
-QHeaderView::section:horizontal { border-right: 1px solid #B0BEC5; }
-
-
-QScrollArea { border: none; }
-
-QScrollBar:vertical { border: none; background: #F5F7FA; width: 8px; margin: 0px; }
-
-QScrollBar::handle:vertical { background: #B0BEC5; border-radius: 4px; min-height: 20px; }
-
-QScrollBar::handle:vertical:hover { background: #2979FF; }
-
-QScrollBar::handle:vertical:pressed { background: #1976D2; }
-
-QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0px; border: none; background: none; }
-
-QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: #F5F7FA; }
-
-QScrollBar:horizontal { border: none; background: #F5F7FA; height: 8px; margin: 0px; }
-
-QScrollBar::handle:horizontal { background: #B0BEC5; border-radius: 4px; min-width: 20px; }
-
-QScrollBar::handle:horizontal:hover { background: #2979FF; }
-
-QScrollBar::handle:horizontal:pressed { background: #1976D2; }
-
-QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { width: 0px; border: none; background: none; }
-
-QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal { background: #F5F7FA; }
-
-QSplitter {
-    background-color: transparent;
+    background: none;
+    width: 0px;
+    height: 0px;
 }
 
 QSplitter::handle {
     width: 6px;
 }
 
-/* Context Menu */
 QMenu#contextMenu {
-    background-color: #F5F7FA; /* Light gray background, consistent with headers */
-    border: 1px solid #B0BEC5; /* Matching table border */
-    
+    border-style: solid;
+    border-width: 1px;
     padding: 2px;
 }
 
 QMenu#contextMenu::item {
-    padding: 6px 12px; /* Readable padding */
-    font-family: Inter, Arial, sans-serif;
-    font-size: 14px;
-    color: #1E1E1E; /* Dark text for readability */
-    background-color: transparent; /* No background by default */
-}
-
-QMenu#contextMenu::item:selected {
-    background-color: #E3F2FD; /* Light blue for hover/selection, matches QTableWidget */
-    color: #1E1E1E;
+    padding: 6px 12px;
 }
 
 QMenu#contextMenu::separator {
     height: 1px;
-    background-color: #B0BEC5; /* Subtle separator line */
     margin: 2px 0;
+}
+
+QGroupBox#groupBox {
+    border-style: solid;
+    border-width: 1px;
+    margin: 10px 0px 5px 0px;
+    padding: 10px;
+    border-radius: 8px;
+}
+
+QGroupBox#groupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    left: 10px;
+    top: 5px; /* Вирівнювання по центру лінії */
+    padding: 0 5px;
+}
+
+QCheckBox {
+    spacing: 8px;
+    font-weight: 400;
+}
+
+QCheckBox::indicator {
+    width: 18px;
+    height: 18px;
+    border-radius: 4px;
+    border-style: solid;
+    border-width: 1px;
 }

@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import (
     QTableWidget, QTableWidgetItem, QScrollArea, QPushButton, QMenu, QAction,
     QHeaderView, QFileDialog, QAbstractItemView, QStyledItemDelegate, QComboBox
 )
-from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtCore import Qt, QTimer, QSettings
 from PyQt5.QtGui import QColor, QCursor, QBrush
 import pandas as pd
 from db.connect_db import setup_database
@@ -19,6 +19,9 @@ class ComboDelegate(QStyledItemDelegate):
     def createEditor(self, parent, option, index):
         editor = QComboBox(parent)
         editor.addItems(self.items)
+        editor.setFrame(False) # Прибираємо рамку, щоб вписати в клітинку
+        # Відкриваємо список одразу
+        QTimer.singleShot(0, editor.showPopup)
         return editor
 
     def setEditorData(self, editor, index):
@@ -53,6 +56,7 @@ class BaseTableWidget(QWidget):
         self.page_size = 50
         self.current_offset = 0
         self.is_loading = False
+        self.all_data_loaded = False
 
         self.setup_ui()
         self.load_data()
@@ -74,12 +78,12 @@ class BaseTableWidget(QWidget):
         layout.addWidget(scroll_area)
 
         # Налаштування таблиці
-        self.table = QTableWidget(self)
+        self.table = QTableWidget(self); self.table.verticalHeader().setDefaultSectionSize(45)
         self.table.setObjectName("tableWidget")
         self.table.setColumnCount(len(self.headers))
         self.table.setHorizontalHeaderLabels(self.headers)
-        self.table.verticalHeader().setDefaultSectionSize(30)
         self.table.setAlternatingRowColors(True)
+        self.table.setEditTriggers(QAbstractItemView.CurrentChanged) # Редагування в один клік (при зміні фокусу)
         self.table.setColumnHidden(0, self.hide_id)  # Ховаємо ID за замовчуванням
         
         header = self.table.horizontalHeader()
@@ -177,22 +181,6 @@ class BaseTableWidget(QWidget):
             df.to_excel(path, index=False, engine='openpyxl')
             self.show_success_message("Експорт успішно завершено!", "general")
 
-    def add_plus_button_row(self):
-        """Add a '+' button in the last row for adding new entries"""
-        if self.table.rowCount() > 0 and isinstance(self.table.cellWidget(self.table.rowCount() - 1, 0), QPushButton):
-            self.table.removeRow(self.table.rowCount() - 1)
-        
-        row_position = self.table.rowCount()
-        self.table.insertRow(row_position)
-        
-        self.add_button = QPushButton("+", self)
-        self.add_button.setObjectName("searchButton")
-        self.add_button.setStyleSheet("background-color: #4CAF50;")
-        self.add_button.clicked.connect(self.add_new_row)
-        self.table.setCellWidget(row_position, 0, self.add_button)
-        self.table.verticalHeader().setSectionResizeMode(row_position, QHeaderView.Fixed)
-        self.table.scrollToBottom()
-
     def show_loader(self):
         """Показати індикатор завантаження."""
         self.loading_label.show()
@@ -206,14 +194,15 @@ class BaseTableWidget(QWidget):
     def check_scroll_position(self):
         """Перевірка позиції скролу для підвантаження даних."""
         scroll_bar = self.table.verticalScrollBar()
-        if scroll_bar.value() == scroll_bar.maximum() and not self.is_loading:
+        if scroll_bar.value() == scroll_bar.maximum() and not self.is_loading and not self.all_data_loaded:
             self.load_data()
 
     def search_table(self):
         """Пошук у таблиці з підсвічуванням знайдених рядків."""
         search_text = self.search_input.text().strip().lower()
 
-        if self.current_offset > 0:
+        # Якщо ми ще не завантажили всі дані для пошуку - робимо це один раз
+        if not self.all_data_loaded:
             self.load_data(reset=True, full_load=True)
 
         self.table.blockSignals(True)
@@ -237,6 +226,11 @@ class BaseTableWidget(QWidget):
         self.no_results_label.setVisible(not found_any)
         self.table.setVisible(found_any)
 
+        if found_any:
+            self.table.setAlternatingRowColors(False)
+        else:
+            self.table.setAlternatingRowColors(True)
+
         self.table.blockSignals(False)
 
     def scroll_to_row(self, row):
@@ -258,24 +252,37 @@ class BaseTableWidget(QWidget):
         """Підсвічує рядок зеленим при пошуку; зберігає червоний для скасованих."""
         if match and self.first_match_row is None:
             self.first_match_row = row + 1
-        if self.first_match_row is not None:
-            self.scroll_to_row(self.first_match_row - 4)
+        
+        # Визначаємо колір підсвічування залежно від теми
+        settings = QSettings("MyApp", "Settings")
+        theme = settings.value("theme", "light")
+        
+        if theme == "grey":
+            # Приглушений темно-зелений для темної теми
+            highlight_color = QColor(35, 80, 50) 
+        else:
+            # М'який пастельний зелений для світлої теми
+            highlight_color = QColor(180, 245, 190)
 
         is_cancelled = self._is_row_cancelled(row)
         for col in range(self.table.columnCount()):
             item = self.table.item(row, col)
             if item:
                 if match:
-                    item.setBackground(QColor(120, 250, 155))  # зелений пошук
+                    item.setBackground(highlight_color)
                 elif is_cancelled:
-                    item.setBackground(QColor(255, 180, 180))  # червоний скасовані
+                    item.setBackground(QColor(255, 180, 180))
                 else:
-                    item.setBackground(QBrush())  # порожній браш -> стандартне чергування
+                    item.setBackground(QBrush())
+
+        if match and self.first_match_row == row + 1:
+            self.scroll_to_row(max(0, row - 4))
 
     def clear_highlight(self):
         """Очищує підсвічування пошуку; відновлює стандартні кольори сіро/біло."""
         self.no_results_label.hide()
         self.table.show()
+        self.table.setAlternatingRowColors(True)
         self.table.blockSignals(True)
         for row in range(self.table.rowCount()):
             self.table.setRowHidden(row, False)
@@ -317,57 +324,46 @@ class BaseTableWidget(QWidget):
 
     def update_record(self, row, column):
         """Оновлює запис у базі даних."""
+        if self.is_loading: # Жорсткий захист від оновлення під час завантаження
+            return
+
         try:
             record_id_item = self.table.item(row, 0)
             record_id = record_id_item.text() if record_id_item else None
 
             if not record_id:
-                self.show_error_message("ID запису відсутній. Неможливо оновити запис.", "general")
                 return
 
             if column in self.checkbox_columns:
                 is_checked = self.table.item(row, column).checkState() == Qt.Checked
-                # Для колонки "Скасована заява" зберігаємо True/False в базу
                 if column == self.cancelled_column:
-                    new_value = is_checked  # boolean
-                    # Оновлюємо підсвітку рядка в реальному часі
+                    new_value = is_checked
+                    # Оновлюємо підсвітку в реальному часі
                     color = QColor(255, 180, 180) if is_checked else QColor(Qt.white)
                     self.table.blockSignals(True)
                     for col in range(self.table.columnCount()):
                         item = self.table.item(row, col)
-                        if item:
-                            item.setBackground(color)
+                        if item: item.setBackground(color)
                     self.table.blockSignals(False)
                 else:
                     new_value = "Так" if is_checked else "Ні"
             else:
                 new_value = self.table.item(row, column).text()
 
-            if column < len(self.columns_name):
-                column_name = self.columns_name[column]
-            else:
-                self.show_error_message("Некоректна колонка. Неможливо оновити запис.", "general")
+            column_name = self.columns_name[column]
+            
+            # Перевірка чи значення дійсно змінилося
+            self.cursor.execute(f"SELECT {column_name} FROM {self.table_name} WHERE id = %s", (record_id,))
+            res = self.cursor.fetchone()
+            if res and (str(res[0]) == str(new_value)):
                 return
 
-            query_check = f"SELECT {column_name} FROM {self.table_name} WHERE id = %s"
-            self.cursor.execute(query_check, (record_id,))
-            result = self.cursor.fetchone()
-
-            if not result:
-                self.show_error_message(f"Запис із ID {record_id} не знайдено.", "general")
-                return
-
-            original_value = result[0]
-
-            if new_value != original_value and str(new_value) != str(original_value):
-                query_update = f"UPDATE {self.table_name} SET {column_name} = %s WHERE id = %s"
-                self.cursor.execute(query_update, (new_value, record_id))
-                self.conn.commit()
-                log_info(f"Адмін: Оновлено запис у {self.table_name} (ID: {record_id}, {column_name} -> {new_value})")
-                self.show_success_message("Запис оновлено!")
+            self.cursor.execute(f"UPDATE {self.table_name} SET {column_name} = %s WHERE id = %s", (new_value, record_id))
+            self.conn.commit()
+            log_info(f"Адмін: Оновлено {self.table_name} (ID: {record_id}, {column_name} -> {new_value})")
+            self.show_success_message("Запис оновлено!")
         except Exception as e:
-            self.show_error_message(f"Помилка при оновленні запису: {str(e)}", "general", rollback=True)
-
+            self.show_error_message(f"Помилка оновлення: {str(e)}", rollback=True)
 
     def delete_record(self):
         """Delete selected record"""
@@ -391,9 +387,12 @@ class BaseTableWidget(QWidget):
         if self.is_loading:
             return
 
+        self.table.blockSignals(True) # Блокуємо сигнали ОДРАЗУ
+
         if reset:
             self.current_offset = 0
             self.table.setRowCount(0)
+            self.all_data_loaded = False
 
         if full_load:
             offset = 0
@@ -415,54 +414,49 @@ class BaseTableWidget(QWidget):
 
             self.cursor.execute(query)
             records = self.cursor.fetchall()
+            
+            # Якщо завантажили все або менше сторінки
+            if limit and len(records) < limit:
+                self.all_data_loaded = True
+            elif limit is None:
+                self.all_data_loaded = True
 
             existing_ids = set()
-            for row in range(self.table.rowCount()):
-                item = self.table.item(row, 0)
-                if item:
-                    existing_ids.add(item.text())
-
-            self.table.blockSignals(True)
+            for r in range(self.table.rowCount()):
+                it = self.table.item(r, 0)
+                if it: existing_ids.add(it.text())
 
             for row_data in records:
                 if str(row_data[0]) in existing_ids:
                     continue
 
-                row_position = self.table.rowCount()
-                self.table.insertRow(row_position)
-                for column_number, data in enumerate(row_data):
-                    if column_number in self.checkbox_columns:
+                row_pos = self.table.rowCount()
+                self.table.insertRow(row_pos)
+                for col_idx, data in enumerate(row_data):
+                    if col_idx in self.checkbox_columns:
                         item = QTableWidgetItem()
                         item.setFlags(Qt.ItemIsUserCheckable | Qt.ItemIsEnabled | Qt.ItemIsSelectable)
                         item.setCheckState(Qt.Checked if str(data) in ("True", "Так", "true") else Qt.Unchecked)
-                        item.setText("")
                     else:
                         item = QTableWidgetItem(str(data) if data is not None else "")
-                    
-                    self.table.setItem(row_position, column_number, item)
+                    self.table.setItem(row_pos, col_idx, item)
 
-                # Підсвічуємо червоним, якщо це скасована заява
                 if self.cancelled_column is not None:
-                    is_cancelled = str(row_data[self.cancelled_column]) in ("True", "Так", "true")
-                    if is_cancelled:
-                        red = QColor(255, 180, 180)
-                        for col in range(self.table.columnCount()):
-                            if self.table.item(row_position, col):
-                                self.table.item(row_position, col).setBackground(red)
+                    if str(row_data[self.cancelled_column]) in ("True", "Так", "true"):
+                        for c in range(self.table.columnCount()):
+                            if self.table.item(row_pos, c):
+                                self.table.item(row_pos, c).setBackground(QColor(255, 180, 180))
 
             if not (update_last or full_load):
                 self.current_offset += len(records)
 
-
-            if len(records) < (limit if limit else len(records)):
-                self.table.verticalScrollBar().setValue(self.table.verticalScrollBar().maximum())
+            if len(records) < (limit if limit else 1):
                 self.table.setVerticalScrollMode(QTableWidget.ScrollPerPixel)
             else:
                 self.table.setVerticalScrollMode(QTableWidget.ScrollPerItem)
 
         except Exception as e:
-            self.show_error_message(f"Помилка при завантаженні даних: {str(e)}", "general", rollback=True)
-
+            self.show_error_message(f"Помилка завантаження: {str(e)}", rollback=True)
         finally:
             self.table.blockSignals(False)
             self.hide_loader()
@@ -476,32 +470,23 @@ class BaseTableWidget(QWidget):
                     self.default_values[column] = callback()
                 elif isinstance(callback, str):
                     self.cursor.execute(callback)
-                    result = self.cursor.fetchone()
-                    if result:
-                        self.default_values[column] = result[0]
-                    else:
-                        raise ValueError(f"Не вдалося отримати значення для '{column}'")
+                    res = self.cursor.fetchone()
+                    if res: self.default_values[column] = res[0]
 
-            columns = []
-            values = []
-            placeholders = []
-
-            for key, value in self.default_values.items():
-                if value == "current_date":
-                    columns.append(key)
-                    placeholders.append("current_date")
+            cols = []
+            vals = []
+            places = []
+            for k, v in self.default_values.items():
+                cols.append(k)
+                if v == "current_date": places.append("current_date")
                 else:
-                    columns.append(key)
-                    placeholders.append("%s")
-                    values.append(value)
+                    places.append("%s")
+                    vals.append(v)
 
-            query = f"INSERT INTO {self.table_name} ({', '.join(columns)}) VALUES ({', '.join(placeholders)})"
-            self.cursor.execute(query, values)
+            query = f"INSERT INTO {self.table_name} ({', '.join(cols)}) VALUES ({', '.join(places)})"
+            self.cursor.execute(query, vals)
             self.conn.commit()
-            log_info(f"Адмін: Додано новий запис у {self.table_name}")
-
             self.load_data(reset=True)
-            self.show_success_message("Новий запис успішно додано.")
-
+            self.show_success_message("Запис додано!")
         except Exception as e:
-            self.show_error_message(f"Помилка при додаванні запису: {str(e)}", "general", rollback=True)
+            self.show_error_message(f"Помилка додавання: {str(e)}", rollback=True)

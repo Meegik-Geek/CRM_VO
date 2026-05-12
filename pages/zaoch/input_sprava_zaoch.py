@@ -15,7 +15,7 @@ class InputSpravaZaoch(QWidget):
         super(InputSpravaZaoch, self).__init__()
 
         # Основний лейаут
-        layout = QVBoxLayout(self)
+        layout = QVBoxLayout(self); layout.setContentsMargins(10, 10, 10, 10); layout.setSpacing(10)
 
         # Повідомлення більше не потрібні в самому класі, бо використовуються глобальні QMessageBox
 
@@ -25,7 +25,7 @@ class InputSpravaZaoch(QWidget):
         layout.addWidget(label)
 
         # Пошук
-        search_layout = QHBoxLayout()
+        search_layout = QHBoxLayout(); search_layout.setContentsMargins(0, 0, 0, 0); search_layout.setSpacing(10)
         self.search_input = QLineEdit(self)
         self.search_input.setObjectName("searchInput")
         self.search_input.setPlaceholderText("Пошук за номером справи або свідоцтвом освіти...")
@@ -48,22 +48,22 @@ class InputSpravaZaoch(QWidget):
         self.cancel_button.setObjectName("cancelButton")
         self.cancel_button.setCursor(QCursor(Qt.PointingHandCursor))
         self.cancel_button.setEnabled(False)
-        self.cancel_button.setStyleSheet("font-size: 13px; background-color: #E0E0E0; color: #707070;")
+        self.cancel_button
         self.cancel_button.clicked.connect(self.cancel_search)
         search_layout.addWidget(self.cancel_button)
 
         layout.addLayout(search_layout)
 
         # Прокручувана область
-        scroll_area = QScrollArea(self)
+        scroll_area = QScrollArea(self); scroll_area.setFrameShape(QScrollArea.NoFrame); scroll_area.setViewportMargins(0, 0, 0, 0); scroll_area.setContentsMargins(0, 0, 0, 0)
         scroll_area.setWidgetResizable(True)
-        container = QWidget()
-        form_layout = QFormLayout(container)
+        container = QWidget(); container.setObjectName("formContainer")
+        form_layout = QVBoxLayout(container); form_layout.setContentsMargins(0, 0, 0, 0); form_layout.setSpacing(10)
 
         # Група: Ввід даних особової справи
         sprava_data_group = QGroupBox("Ввід даних особової справи (заочної форми)")
         sprava_data_group.setObjectName("groupBox")
-        sprava_form_layout = QFormLayout()
+        sprava_form_layout = QFormLayout(); sprava_form_layout.setLabelAlignment(Qt.AlignLeft); sprava_form_layout.setFormAlignment(Qt.AlignLeft); sprava_form_layout.setContentsMargins(0, 0, 0, 0); sprava_form_layout.setSpacing(10)
 
         self.number_sprava_input = self.create_input_field("Номер справи")
         self.number_sprava_input.setObjectName("inputField")
@@ -112,15 +112,15 @@ class InputSpravaZaoch(QWidget):
         sprava_form_layout.addRow("", self.zno_nmt_checkbox)
 
         sprava_data_group.setLayout(sprava_form_layout)
-        form_layout.addRow(sprava_data_group)
+        form_layout.addWidget(sprava_data_group)
 
         # Кнопки для збереження та редагування
-        button_layout = QHBoxLayout()
+        button_layout = QHBoxLayout(); button_layout.setContentsMargins(0, 20, 0, 0); button_layout.setSpacing(10)
         self.save_button = QPushButton("Зберегти особову справу", self)
-        self.save_button.setObjectName("inputButton")
+        self.save_button.setObjectName("greenButton")
         self.save_button.setCursor(QCursor(Qt.PointingHandCursor))
         self.save_button.setEnabled(False)
-        self.save_button.setStyleSheet("background-color: #E0E0E0; color: #adadad;")
+        self.save_button
         self.save_button.clicked.connect(self.save_sprava)
         button_layout.addWidget(self.save_button)
 
@@ -128,11 +128,11 @@ class InputSpravaZaoch(QWidget):
         self.update_button.setObjectName("editButton")
         self.update_button.setCursor(QCursor(Qt.PointingHandCursor))
         self.update_button.setEnabled(False)
-        self.update_button.setStyleSheet("background-color: #E0E0E0; color: #adadad;")
+        self.update_button
         self.update_button.clicked.connect(self.update_sprava)
         button_layout.addWidget(self.update_button)
 
-        form_layout.addRow(button_layout)
+        form_layout.addLayout(button_layout)
 
         scroll_area.setWidget(container)
         layout.addWidget(scroll_area)
@@ -187,10 +187,10 @@ class InputSpravaZaoch(QWidget):
         )
         if is_fields_filled and not self.update_button.isEnabled():
             self.save_button.setEnabled(True)
-            self.save_button.setStyleSheet("background-color: #32CD32; color: white;")
+            self.save_button
         else:
             self.save_button.setEnabled(False)
-            self.save_button.setStyleSheet("background-color: #E0E0E0; color: #adadad;")
+            self.save_button
 
     def validate_date(self, date_str):
         """Перевіряє, чи дата є валідною."""
@@ -251,11 +251,11 @@ class InputSpravaZaoch(QWidget):
             if sprava:
                 self.populate_fields(sprava)
                 self.update_button.setEnabled(True)
-                self.update_button.setStyleSheet("background-color: #FFA500; color: white;")
+                self.update_button
                 self.cancel_button.setEnabled(True)
-                self.cancel_button.setStyleSheet("font-size: 13px; background-color: #FF9999; color: white;")
+                self.cancel_button
                 self.save_button.setEnabled(False)
-                self.save_button.setStyleSheet("background-color: #E0E0E0; color: #adadad;")
+                self.save_button
                 show_success(self, f"Справу знайдено!")
             else:
                 show_error(self, "Справу не знайдено!")
@@ -351,11 +351,11 @@ class InputSpravaZaoch(QWidget):
         self.zno_nmt_checkbox.setChecked(False)
         self.search_input.clear()
         self.save_button.setEnabled(False)
-        self.save_button.setStyleSheet("background-color: #E0E0E0; color: #adadad;")
+        self.save_button
         self.update_button.setEnabled(False)
-        self.update_button.setStyleSheet("background-color: #E0E0E0; color: #adadad;")
+        self.update_button
         self.cancel_button.setEnabled(False)
-        self.cancel_button.setStyleSheet("font-size: 13px; background-color: #E0E0E0; color: #707070;")
+        self.cancel_button
 
     def cancel_search(self):
         """Скасовує пошук і очищає форму."""

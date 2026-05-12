@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import (
 )
 
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
-from PyQt5.QtGui import QPixmap
+from PyQt5.QtGui import QPixmap, QFont, QIcon
 import psycopg2
 from psycopg2 import sql
 
@@ -32,6 +32,16 @@ class InstallWorker(QThread):
         self.config = config
 
     def run(self):
+        def safe_str(e):
+            """Надійно перетворює виключення в рядок, уникаючи UnicodeDecodeError."""
+            try:
+                return str(e)
+            except:
+                try:
+                    return repr(e)
+                except:
+                    return "Невідома помилка підключення (помилка декодування тексту)"
+
         try:
             self.log.emit("Початок інсталяції...")
             self.progress.emit(10)
@@ -54,15 +64,48 @@ class InstallWorker(QThread):
             self.progress.emit(30)
             
             if self.config.get("is_server"):
-                self.log.emit(f"Налаштування бази даних на локальному сервері...")
-                # Спроба підключитися до postgres для створення цільової бази
-                conn = psycopg2.connect(
-                    host=self.config['db_host'],
-                    port=self.config['db_port'],
-                    user=self.config['db_user'],
-                    password=self.config['db_pass'],
-                    dbname='postgres'
-                )
+                self.log.emit("Налаштування бази даних на локальному сервері...")
+                
+                # Дочекаємося запуску служби
+                import time
+                max_retries = 5
+                conn = None
+                last_error_msg = ""
+                
+                for i in range(max_retries):
+                    try:
+                        conn = psycopg2.connect(
+                            host=self.config['db_host'],
+                            port=self.config['db_port'],
+                            user=self.config['db_user'],
+                            password=self.config['db_pass'],
+                            dbname='postgres',
+                            connect_timeout=5
+                        )
+                        break
+                    except (psycopg2.Error, UnicodeDecodeError, Exception) as e:
+                        # Якщо це помилка декодування - це майже напевно локалізоване повідомлення про пароль
+                        if isinstance(e, UnicodeDecodeError):
+                            last_error_msg = "Помилка авторизації: невірний пароль для користувача 'postgres' (локалізоване повідомлення системи)."
+                        else:
+                            last_error_msg = safe_str(e)
+                            
+                        if i == max_retries - 1:
+                            if "password authentication failed" in last_error_msg.lower() or "authorization" in last_error_msg.lower():
+                                raise Exception("Невірний пароль для користувача 'postgres'. Будь ласка, вкажіть пароль, який ви задали під час встановлення PostgreSQL.")
+                            
+                            # Якщо ми так і не розшифрували, але була помилка Unicode
+                            if "UnicodeDecodeError" in last_error_msg or not last_error_msg:
+                                raise Exception("Не вдалося підключитися до PostgreSQL. Найімовірніше: невірний пароль користувача 'postgres'.")
+                                
+                            raise Exception(last_error_msg)
+                        
+                        self.log.emit(f"Очікування запуску PostgreSQL ({i+1}/{max_retries})...")
+                        time.sleep(5)
+
+                if not conn:
+                    raise Exception(last_error_msg or "Не вдалося встановити підключення до PostgreSQL")
+
                 conn.autocommit = True
                 with conn.cursor() as cur:
                     cur.execute(sql.SQL("SELECT 1 FROM pg_database WHERE datname = %s"), [self.config['db_name']])
@@ -82,7 +125,6 @@ class InstallWorker(QThread):
                     dbname=self.config['db_name']
                 )
                 with target_conn.cursor() as cur:
-                    # Настільки надійне читання, наскільки це можливо
                     sql_content = ""
                     encodings = ['utf-8', 'cp1251', 'latin-1']
                     for enc in encodings:
@@ -101,7 +143,6 @@ class InstallWorker(QThread):
                 target_conn.close()
             else:
                 self.log.emit(f"Перевірка підключення до сервера {self.config['db_host']}...")
-                # Для клієнта просто перевіряємо, чи база доступна
                 test_conn = psycopg2.connect(
                     host=self.config['db_host'],
                     port=self.config['db_port'],
@@ -126,9 +167,7 @@ class InstallWorker(QThread):
                     check_share = subprocess.run(["net", "share", "CRM_VO_Updater"], capture_output=True)
                     stdout = check_share.stdout.decode('cp1251', errors='replace')
                     if "CRM_VO_Updater" not in stdout:
-                        # Встановлюємо дозволи NTFS для "Everyone" (Всі)
                         subprocess.run(["icacls", updater_path, "/grant", "Everyone:(OI)(CI)F", "/T"], capture_output=True)
-                        
                         subprocess.run(
                             ["net", "share", f"CRM_VO_Updater={updater_path}", "/GRANT:Everyone,FULL"], 
                             capture_output=True
@@ -137,7 +176,6 @@ class InstallWorker(QThread):
                     else:
                         self.log.emit("Мережева папка 'CRM_VO_Updater' вже налаштована.")
                     
-                    # Оновлюємо шлях у базі даних
                     import socket
                     hostname = socket.gethostname()
                     unc_path = f"\\\\{hostname}\\CRM_VO_Updater"
@@ -150,28 +188,22 @@ class InstallWorker(QThread):
                         dbname=self.config['db_name']
                     )
                     with target_conn.cursor() as cur:
-                        cur.execute(
-                            "UPDATE settings SET value = %s WHERE key = 'update_path'",
-                            (unc_path,)
-                        )
-                        cur.execute(
-                            "UPDATE settings SET value = 'LOCAL' WHERE key = 'update_delivery_method'"
-                        )
+                        cur.execute("UPDATE settings SET value = %s WHERE key = 'update_path'", (unc_path,))
+                        cur.execute("UPDATE settings SET value = 'LOCAL' WHERE key = 'update_delivery_method'")
                     target_conn.commit()
                     target_conn.close()
                     self.log.emit(f"Шлях оновлень встановлено: {unc_path}")
                 except Exception as share_e:
-                    self.log.emit(f"Попередження (Оновлення): не вдалося налаштувати доступ - {share_e}")
+                    self.log.emit(f"Попередження (Оновлення): не вдалося налаштувати доступ - {safe_str(share_e)}")
 
             self.progress.emit(100)
             self.finished.emit(True, "Інсталяцію успішно завершено!")
             
         except Exception as e:
-            # Надійна обробка тексту помилки (запобігає UnicodeDecodeError)
-            try:
-                error_text = str(e)
-            except UnicodeDecodeError:
-                error_text = repr(e)
+            error_text = safe_str(e)
+            # Якщо навіть safe_str повернув UnicodeDecodeError в тексті - замінюємо на людську мову
+            if "utf-8' codec can't decode" in error_text:
+                error_text = "Невірний пароль для бази даних або помилка підключення до PostgreSQL."
             
             self.log.emit(f"❌ ПОМИЛКА: {error_text}")
             self.finished.emit(False, error_text)
@@ -340,7 +372,7 @@ class ProgressPage(QWizardPage):
 class InstallerWizard(QWizard):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("CRM Вступ.Офіс - Встановлення та налаштування")
+        self.setWindowTitle("CRM Вступ.Офіс - Налаштування системи")
         self.setWizardStyle(QWizard.ModernStyle)
         self.resize(700, 500)
         
@@ -355,14 +387,17 @@ class InstallerWizard(QWizard):
         self.addPage(AdminSetupPage())
         self.addPage(ProgressPage())
 
+        if os.path.exists("resource/logo.ico"):
+            self.setWindowIcon(QIcon("resource/logo.ico"))
+        elif os.path.exists("resource/logo.png"):
+            self.setWindowIcon(QIcon("resource/logo.png"))
+
         if os.path.exists("resource/logo.png"):
             self.setPixmap(QWizard.LogoPixmap, QPixmap("resource/logo.png"))
 
 if __name__ == "__main__":
-    from PyQt5.QtGui import QFont
     app = QApplication(sys.argv)
     app.setStyle("Fusion") 
     wizard = InstallerWizard()
     wizard.show()
     sys.exit(app.exec_())
-

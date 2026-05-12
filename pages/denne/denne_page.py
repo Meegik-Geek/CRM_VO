@@ -31,7 +31,7 @@ class InputDenPage(QMainWindow):
 
         splitter.addWidget(self.table_list)
         self.right_panel = QWidget()
-        self.right_layout = QVBoxLayout(self.right_panel)
+        self.right_layout = QVBoxLayout(self.right_panel); self.right_layout.setContentsMargins(0, 0, 0, 0)
         splitter.addWidget(self.right_panel)
         splitter.setSizes([180, 800])
 

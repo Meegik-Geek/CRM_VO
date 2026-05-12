@@ -88,12 +88,26 @@ class UpdatesPage(QWidget):
         self.check_latest_global_version()
 
     def init_ui(self):
-        layout = QVBoxLayout(self)
+        # Головний лейаут
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+
+        # Область прокрутки
+        scroll = QScrollArea(self)
+        scroll.setWidgetResizable(True)
+        scroll.setObjectName("updatesScrollArea")
+        scroll.setStyleSheet("QScrollArea { border: none; background: transparent; }")
+
+        # Контейнер для контенту
+        container = QWidget()
+        container.setObjectName("updatesContainer")
+        layout = QVBoxLayout(container)
         layout.setSpacing(20)
-        layout.addStretch()
+        layout.setContentsMargins(20, 20, 20, 20)
 
         # 0. ІНФОРМАЦІЯ
         info_group = QGroupBox("Інформація")
+        info_group.setObjectName("groupBox")
         info_layout = QVBoxLayout(info_group)
         info_layout.setSpacing(8)
 
@@ -127,6 +141,7 @@ class UpdatesPage(QWidget):
 
         # Тільки опис у вигляді панелі
         self.description_group = QGroupBox("Опис оновлення")
+        self.description_group.setObjectName("groupBox")
         desc_layout = QVBoxLayout(self.description_group)
         self.info_release_body = QLabel()
         self.info_release_body.setWordWrap(True)
@@ -148,6 +163,7 @@ class UpdatesPage(QWidget):
 
         # 1. СТАТУС ВЕРСІЙ В БД
         status_group = QGroupBox("Поточний стан сервера")
+        status_group.setObjectName("groupBox")
         status_layout = QVBoxLayout(status_group)
         
         self.db_version_lbl = QLabel(f"Затверджена версія (роздається клієнтам): <b>{get_setting('admin_approved_version', '1.0.0-0')}  </b>")
@@ -172,6 +188,7 @@ class UpdatesPage(QWidget):
 
         # 2. ОНОВЛЕННЯ З GITHUB
         github_group = QGroupBox("Оновлення з Інтернету (GitHub)")
+        github_group.setObjectName("groupBox")
         github_layout = QVBoxLayout(github_group)
         
         self.github_status_lbl = QLabel("Перевірка версій на GitHub...")
@@ -200,6 +217,7 @@ class UpdatesPage(QWidget):
 
         # 3. ВЛАСНІ КАСТОМНІ ПАТЧІ
         custom_group = QGroupBox("Власний локальний патч")
+        custom_group.setObjectName("groupBox")
         custom_layout = QVBoxLayout(custom_group)
         
         custom_layout.addWidget(QLabel("Використовується, якщо ви власноруч модифікували файли і хочете розповсюдити на всі ПК.\nЦе автоматично збільшить номер патчу (напр. з -0 на -1)."))
@@ -210,8 +228,11 @@ class UpdatesPage(QWidget):
         self.btn_custom_patch.clicked.connect(self.deploy_custom_patch)
         custom_layout.addWidget(self.btn_custom_patch)
         
-        layout.addWidget(custom_group)
         layout.addStretch()
+
+        # Встановлюємо контейнер у скрол і скрол у головний лейаут
+        scroll.setWidget(container)
+        main_layout.addWidget(scroll)
 
         self.latest_github_version = None
         self.latest_github_url = None

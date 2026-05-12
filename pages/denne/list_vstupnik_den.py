@@ -14,14 +14,14 @@ class ListVstupnikDen(QWidget):
         super().__init__()
 
         # Основний лейаут для форми
-        layout = QVBoxLayout(self)
+        layout = QVBoxLayout(self); layout.setContentsMargins(10, 10, 10, 10); layout.setSpacing(10)
 
         # Заголовок форми
         label = QLabel("Форма для пошуку вступників за спеціальністю", self)
         layout.addWidget(label)
 
         # Горизонтальний лейаут для вибору спеціальності та кнопки пошуку
-        search_layout = QHBoxLayout()
+        search_layout = QHBoxLayout(); search_layout.setContentsMargins(0, 0, 0, 0); search_layout.setSpacing(10)
 
         # Випадаючий список для вибору спеціальності
         self.specialty_combo = QComboBox(self)
@@ -36,7 +36,7 @@ class ListVstupnikDen(QWidget):
         # Кнопка пошуку
         self.search_button = QPushButton("Шукати", self)
         self.search_button.setObjectName("searchButton")
-        self.search_button.setFixedWidth(300)
+        
         self.search_button.setCursor(QCursor(Qt.PointingHandCursor))
         self.search_button.clicked.connect(self.search_vstupnik)
         search_layout.addWidget(self.search_button)
@@ -45,7 +45,7 @@ class ListVstupnikDen(QWidget):
         layout.addLayout(search_layout)
 
         # Прокручувана область для відображення таблиці з результатами
-        self.scroll_area = QScrollArea(self)
+        self.scroll_area = QScrollArea(self); self.scroll_area.setFrameShape(QScrollArea.NoFrame); self.scroll_area.setViewportMargins(0, 0, 0, 0); self.scroll_area.setContentsMargins(0, 0, 0, 0)
         self.scroll_area.setWidgetResizable(True)
         self.table = QTableWidget()  # Таблиця для відображення результатів
         self.table.setObjectName("tableWidget")

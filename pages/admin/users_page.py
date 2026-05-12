@@ -71,9 +71,11 @@ class UsersPage(QWidget):
         self.layout.addWidget(self.title)
 
         self.table = QTableWidget()
+        self.table.setObjectName("usersTable")
         self.table.setColumnCount(4)
         self.table.setHorizontalHeaderLabels(["Відповідальна особа", "Логін", "Пароль", "Дія"])
-        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.table.verticalHeader().setDefaultSectionSize(45); self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.table.verticalHeader().setDefaultSectionSize(50)
         self.layout.addWidget(self.table)
 
     def load_users(self):

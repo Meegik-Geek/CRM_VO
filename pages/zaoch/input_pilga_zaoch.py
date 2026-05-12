@@ -18,14 +18,14 @@ class InputPilgaZaoch(QWidget):
         self.is_editing = False  # Стан, який показує, чи редагується пільга
 
 
-        layout = QVBoxLayout(self)
+        layout = QVBoxLayout(self); layout.setContentsMargins(10, 10, 10, 10); layout.setSpacing(10)
         layout.setAlignment(Qt.AlignTop)
         # Основний лейаут для форми
         label = QLabel("Форма для введення пільги вступника (заочної форми)", self)
         layout.addWidget(label)
 
         # Search section
-        search_layout = QHBoxLayout()
+        search_layout = QHBoxLayout(); search_layout.setContentsMargins(0, 0, 0, 0); search_layout.setSpacing(10)
         self.search_input = QLineEdit(self)
         self.search_input.setObjectName("searchInput")
         self.search_input.setPlaceholderText("Пошук за номером свідоцтва про освіту...")
@@ -54,15 +54,15 @@ class InputPilgaZaoch(QWidget):
         layout.addLayout(search_layout)
 
         # Scrollable area
-        scroll_area = QScrollArea(self)
+        scroll_area = QScrollArea(self); scroll_area.setFrameShape(QScrollArea.NoFrame); scroll_area.setViewportMargins(0, 0, 0, 0); scroll_area.setContentsMargins(0, 0, 0, 0)
         scroll_area.setWidgetResizable(True)
-        container = QWidget()
-        form_layout = QFormLayout(container)
+        container = QWidget(); container.setObjectName("formContainer")
+        form_layout = QVBoxLayout(container); form_layout.setContentsMargins(0, 0, 0, 0); form_layout.setSpacing(10)
 
         # Benefits data group
         pilga_data_group = QGroupBox("Ввід даних пільги вступника")
         pilga_data_group.setObjectName("groupBox")
-        pilga_form_layout = QFormLayout()
+        pilga_form_layout = QFormLayout(); pilga_form_layout.setLabelAlignment(Qt.AlignLeft); pilga_form_layout.setFormAlignment(Qt.AlignLeft); pilga_form_layout.setContentsMargins(0, 0, 0, 0); pilga_form_layout.setSpacing(10)
 
         self.cert_number_input = self.create_input_field("Номер свідоцтва про освіту", input_mask="AA №00000000", validator=QRegExpValidator(QRegExp(r"[А-ЯІЇЄҐ№ 0-9]*"), self))
         self.cert_number_input.setObjectName("inputField")
@@ -78,10 +78,10 @@ class InputPilgaZaoch(QWidget):
         pilga_form_layout.addRow("Документи про пільгу:", self.document_pilgi_input)
 
         pilga_data_group.setLayout(pilga_form_layout)
-        form_layout.addRow(pilga_data_group)
+        form_layout.addWidget(pilga_data_group)
 
         # Navigation buttons
-        navigation_layout = QHBoxLayout()
+        navigation_layout = QHBoxLayout(); navigation_layout.setContentsMargins(0, 0, 0, 0); navigation_layout.setSpacing(10); navigation_layout.setContentsMargins(0, 0, 0, 0); navigation_layout.setSpacing(20)
         navigation_layout.setContentsMargins(0, 0, 0, 0)
         navigation_layout.setSpacing(40)
         navigation_layout.addStretch(1)
@@ -90,7 +90,7 @@ class InputPilgaZaoch(QWidget):
         self.prev_button.setObjectName("navButton")
         self.prev_button.setAccessibleName("prev")
         self.prev_button.setEnabled(False)
-        self.prev_button.setStyleSheet("background-color: #E0E0E0; color: #adadad;")
+        self.prev_button
         self.prev_button.clicked.connect(self.show_previous_pilga)
         navigation_layout.addWidget(self.prev_button)
 
@@ -99,7 +99,7 @@ class InputPilgaZaoch(QWidget):
         self.delete_button.setAccessibleName("delete")
         self.delete_button.setCursor(QCursor(Qt.PointingHandCursor))
         self.delete_button.setEnabled(False)
-        self.delete_button.setStyleSheet("background-color: #E0E0E0; color: #adadad;")
+        self.delete_button
         self.delete_button.clicked.connect(self.delete_pilga)
         navigation_layout.addWidget(self.delete_button)
 
@@ -107,17 +107,17 @@ class InputPilgaZaoch(QWidget):
         self.next_button.setObjectName("navButton")
         self.next_button.setAccessibleName("next")
         self.next_button.setEnabled(False)
-        self.next_button.setStyleSheet("background-color: #E0E0E0; color: #adadad;")
+        self.next_button
         self.next_button.clicked.connect(self.show_next_pilga)
         navigation_layout.addWidget(self.next_button)
 
         navigation_layout.addStretch(1)
-        form_layout.addRow(navigation_layout)
+        form_layout.addLayout(navigation_layout)
 
         # Save and update buttons
-        button_layout = QHBoxLayout()
+        button_layout = QHBoxLayout(); button_layout.setContentsMargins(0, 20, 0, 0); button_layout.setSpacing(10)
         self.save_button = QPushButton("Зберегти пільгу", self)
-        self.save_button.setObjectName("inputButton")
+        self.save_button.setObjectName("greenButton")
         self.save_button.setCursor(QCursor(Qt.PointingHandCursor))
         self.save_button.setEnabled(False)
         self.save_button.clicked.connect(self.save_pilga)
@@ -130,7 +130,7 @@ class InputPilgaZaoch(QWidget):
         self.update_button.clicked.connect(self.update_pilga)
         button_layout.addWidget(self.update_button)
 
-        form_layout.addRow(button_layout)
+        form_layout.addLayout(button_layout)
 
         scroll_area.setWidget(container)
         layout.addWidget(scroll_area)
@@ -163,11 +163,11 @@ class InputPilgaZaoch(QWidget):
                 show_success(self, f"Знайдено {len(self.found_pilgas)} пільг!")
                 self.is_editing = True
                 self.update_button.setEnabled(True)
-                self.update_button.setStyleSheet("background-color: #FFA500; color: white;")
+                self.update_button
                 self.save_button.setEnabled(False)
-                self.save_button.setStyleSheet("background-color: #E0E0E0; color: #adadad;")
+                self.save_button
                 self.cancel_button.setEnabled(True)
-                self.cancel_button.setStyleSheet("background-color: #FF9999; color: white;")
+                self.cancel_button
             else:
                 show_error(self, "Пільги не знайдено!")
                 self.clear_form()
@@ -190,24 +190,24 @@ class InputPilgaZaoch(QWidget):
 
         if self.current_pilga_index > 0 and more_than_one_pilga:
             self.prev_button.setEnabled(True)
-            self.prev_button.setStyleSheet("background-color: #3895e0; color: white;")
+            self.prev_button
         else:
             self.prev_button.setEnabled(False)
-            self.prev_button.setStyleSheet("background-color: #E0E0E0; color: #adadad;")
+            self.prev_button
 
         if self.current_pilga_index < len(self.found_pilgas) - 1 and more_than_one_pilga:
             self.next_button.setEnabled(True)
-            self.next_button.setStyleSheet("background-color: #3895e0; color: white;")
+            self.next_button
         else:
             self.next_button.setEnabled(False)
-            self.next_button.setStyleSheet("background-color: #E0E0E0; color: #adadad;")
+            self.next_button
 
         if has_pilgas:
             self.delete_button.setEnabled(True)
-            self.delete_button.setStyleSheet("background-color: red; color: white;")
+            self.delete_button
         else:
             self.delete_button.setEnabled(False)
-            self.delete_button.setStyleSheet("background-color: #E0E0E0; color: #adadad;")
+            self.delete_button
 
     def show_previous_pilga(self):
         """Перемикає на попередню пільгу"""
@@ -251,10 +251,10 @@ class InputPilgaZaoch(QWidget):
         )
         if not self.is_editing and is_fields_filled:
             self.save_button.setEnabled(True)
-            self.save_button.setStyleSheet("background-color: #32CD32; color: white;")
+            self.save_button
         else:
             self.save_button.setEnabled(False)
-            self.save_button.setStyleSheet("background-color: #E0E0E0; color: #adadad;")
+            self.save_button
 
     def save_pilga(self):
         """Зберігає пільгу через репозиторій."""
@@ -348,11 +348,11 @@ class InputPilgaZaoch(QWidget):
         self.current_pilga_index = 0
         self.is_editing = False
         self.save_button.setEnabled(False)
-        self.save_button.setStyleSheet("background-color: #E0E0E0; color: #adadad;")
+        self.save_button
         self.update_button.setEnabled(False)
-        self.update_button.setStyleSheet("background-color: #E0E0E0; color: #adadad;")
+        self.update_button
         self.cancel_button.setEnabled(False)
-        self.cancel_button.setStyleSheet("background-color: #E0E0E0; color: #adadad;")
+        self.cancel_button
         self.update_navigation_buttons()
 
     def cancel_search(self):

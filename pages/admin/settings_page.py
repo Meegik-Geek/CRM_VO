@@ -43,7 +43,8 @@ class SettingsPage(QWidget):
 
         # 1. Дані закладу
         inst_group = QGroupBox("Дані навчального закладу")
-        inst_layout = QFormLayout()
+        inst_group.setObjectName("groupBox")
+        inst_layout = QFormLayout(); inst_layout.setLabelAlignment(Qt.AlignLeft); inst_layout.setFormAlignment(Qt.AlignLeft)
         self.inst_full_name = QLineEdit()
         self.inst_short_name = QLineEdit()
         self.inst_address = QLineEdit()
@@ -61,7 +62,8 @@ class SettingsPage(QWidget):
 
         # 1.1 Відповідальні особи
         resp_group = QGroupBox("Відповідальні особи (для звітів)")
-        resp_layout = QFormLayout()
+        resp_group.setObjectName("groupBox")
+        resp_layout = QFormLayout(); resp_layout.setLabelAlignment(Qt.AlignLeft); resp_layout.setFormAlignment(Qt.AlignLeft)
         
         self.resp_secretary = QLineEdit()
         self.deputy_secretary = QLineEdit()
@@ -78,7 +80,8 @@ class SettingsPage(QWidget):
 
         # 2. Налаштування бекапів
         backup_group = QGroupBox("Автоматичне резервне копіювання")
-        backup_layout = QFormLayout()
+        backup_group.setObjectName("groupBox")
+        backup_layout = QFormLayout(); backup_layout.setLabelAlignment(Qt.AlignLeft); backup_layout.setFormAlignment(Qt.AlignLeft)
         
         self.backup_path = QLineEdit()
         self.btn_select_path = QPushButton("Огляд...")
@@ -97,20 +100,6 @@ class SettingsPage(QWidget):
         self.backup_time.setObjectName("inputField")
         self.backup_time.setDisplayFormat("HH:mm")
         self.backup_time.setMinimumHeight(35)
-        self.backup_time.setStyleSheet("""
-            QTimeEdit#inputField {
-                background-color: #ffffff;
-                border: 1px solid #ced4da;
-                border-radius: 4px;
-                padding: 5px 10px;
-                font-size: 14px;
-                color: #495057;
-            }
-            QTimeEdit#inputField:focus {
-                border-color: #80bdff;
-                outline: 0;
-            }
-        """)
 
         self.backup_time_label = QLabel("Час запуску:")
 

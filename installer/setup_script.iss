@@ -14,41 +14,27 @@ PrivilegesRequired=admin
 ArchitecturesInstallIn64BitMode=x64
 SourceDir=..
 SetupIconFile=resource\logo.ico
-; Ліцензія тепер тут
 LicenseFile=installer\license_uk.txt 
 
 [Languages]
 Name: "ukrainian"; MessagesFile: "compiler:Languages\Ukrainian.isl"
 
-[Types]
-Name: "full"; Description: "Повна інсталяція"
-Name: "custom"; Description: "Вибіркова інсталяція"; Flags: iscustom
-
-[Components]
-Name: "app"; Description: "Програма CRM Вступ.Офіс"; Types: full custom; Flags: fixed
-Name: "postgres"; Description: "Сервер бази даних PostgreSQL"; Types: full
-
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
+Name: "installpostgres"; Description: "Встановити сервер бази даних PostgreSQL (обов'язково для сервера)"; GroupDescription: "Додаткові компоненти:"; Flags: checkedonce
 
 [Files]
-Source: "build\exe.win-amd64-3.14\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: app
-Source: "postgresql-installer.exe"; DestDir: "{tmp}"; Flags: ignoreversion deleteafterinstall; Components: postgres
+Source: "build\exe.win-amd64-3.14\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "postgresql-installer.exe"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
-Name: "{group}\CRM Вступ.Офіс"; Filename: "{app}\main.exe"; Components: app
-Name: "{group}\Налаштування системи"; Filename: "{app}\installer.exe"; Components: app
-Name: "{autodesktop}\CRM Вступ.Офіс"; Filename: "{app}\main.exe"; Tasks: desktopicon; Components: app
+Name: "{group}\CRM Вступ.Офіс"; Filename: "{app}\main.exe"
+Name: "{group}\Налаштування системи"; Filename: "{app}\installer.exe"
+Name: "{autodesktop}\CRM Вступ.Офіс"; Filename: "{app}\main.exe"; Tasks: desktopicon
 
 [Run]
-; 1. Встановлення PostgreSQL (якщо вибрано компонент) - запускається ТИХО під час інсталяції
-Filename: "{tmp}\postgresql-installer.exe"; Parameters: "--mode unattended --unattendedmodeui none --postgrespassword postgres"; StatusMsg: "Встановлення PostgreSQL (це може зайняти 1-2 хвилини)..."; Components: postgres; Flags: runhidden
+; 1. Запуск звичайного встановлення PostgreSQL (з вікнами та налаштуваннями)
+Filename: "{app}\postgresql-installer.exe"; Description: "Встановлення PostgreSQL"; StatusMsg: "Очікування завершення встановлення PostgreSQL..."; Tasks: installpostgres; Flags: waituntilterminated
 
-; 2. АВТОМАТИЧНИЙ запуск Майстра налаштування БД (одразу після копіювання файлів)
+; 2. АВТОМАТИЧНИЙ запуск Майстра налаштування БД (після завершення інсталяції PostgreSQL)
 Filename: "{app}\installer.exe"; StatusMsg: "Запуск майстра налаштування бази даних..."; Flags: nowait
-
-; 3. Запуск самої програми - ВИДАЛЕНО, щоб користувач спочатку налаштував базу через майстер
-; Користувач запустить її сам через ярлик після налаштування.
-
-
-

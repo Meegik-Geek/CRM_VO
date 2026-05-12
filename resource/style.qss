@@ -1,90 +1,98 @@
-/* Загальні налаштування */
+/* === FALLBACK LIGHT THEME (Тільки кольори) === */
+
 QMainWindow {
-    background-color: #FFFFFF; /* Білий фон */
+    background-color: #F5F7FA;
+}
+
+QDialog, QWidget#rightPanel {
+    background-color: #FFFFFF;
+}
+
+QLabel {
+    color: #1E1E1E;
+}
+
+QLabel#errorLabel {
+    color: #E53935;
 }
 
 QPushButton {
-    background-color: #00A8E8;  /* Синій фон для кнопок */
-    color: #FFFFFF;              /* Білий текст на кнопках */
-    font-size: 20px;
-    border: 2px solid #00A8E8;   /* Синя рамка */
-    border-radius: 10px;
-    padding: 10px;
-   
+    background-color: #E0E0E0;
+    color: #1E1E1E;
 }
 
 QPushButton:hover {
-    background-color: #007EA7;  /* Темніший синій при наведенні */
-    border: 2px solid #007EA7;
-   
+    background-color: #D5D5D5;
 }
 
-QPushButton:pressed {
-    background-color: #005082;  /* Ще темніший синій при натисканні */
-    border: 2px solid #005082;
+QPushButton#navButton, QPushButton#searchButton, QPushButton#logButton, 
+QPushButton#mainButton, QPushButton#previewButton {
+    background-color: #2979FF;
+    color: #FFFFFF;
 }
 
-QPushButton#greenButton {
-    background-color: #32CD32;  /* Зелений для кнопки */
-    border: 2px solid #32CD32;
+QPushButton:disabled,
+QPushButton#greenButton:disabled,
+QPushButton#loginButton:disabled,
+QPushButton#printButton:disabled,
+QPushButton#editButton:disabled,
+QPushButton#cancelButton:disabled,
+QPushButton#clearButton:disabled,
+QPushButton#errorButton:disabled,
+QPushButton#drukButton:disabled,
+QPushButton#navButton:disabled,
+QPushButton#searchButton:disabled {
+    background-color: #F0F0F0;
+    color: #BDBDBD;
 }
 
-QPushButton#greenButton:hover {
-    background-color: #2E8B57;  /* Темно-зелений при наведенні */
+QPushButton#greenButton, QPushButton#loginButton, QPushButton#printButton {
+    background-color: #4CAF50;
+    color: #FFFFFF;
 }
 
-QPushButton#greenButton:pressed {
-    background-color: #228B22;  /* Темніший зелений при натисканні */
+QPushButton#editButton {
+    background-color: #F59E0B;
+    color: #FFFFFF;
 }
 
-/* Стиль для текстових повідомлень або інфо */
-QLabel {
-    color: #121212;             /* Темно-синій текст */
-    font-size: 15px;
+QPushButton#cancelButton {
+    background-color: #FF9999;
+    color: #FFFFFF;
 }
-QLineEdit {
-    font-size: 14px;
-    height: 30px;
+
+QPushButton#clearButton, QPushButton#errorButton {
+    background-color: #E53935;
+    color: #FFFFFF;
 }
-.navButton {
-    
-    font-size: 12px;
-    
+
+QLineEdit, QComboBox, QTextEdit {
+    background-color: #FFFFFF;
+    color: #1E1E1E;
+    border-color: #B0BEC5;
 }
-.drukButton {
-    height: 35px;
-    font-size: 14px;
-    background-color: #3895e0; 
-    color: white;
-    
-}
-.logButton {
-    font-size: 13px; 
-    padding: 0px;
-    border: 0px;
-    background-color: #db7704; 
-}
-.logButton:hover {
-    border: 0px;
-    background-color: #ad5e02; 
-}
+
 QListWidget {
-                background-color: #f2f2f2;
-                border: none;
-                font-size: 16px;
-                color: #333;
-            }
-QListWidget::item {
-                padding: 10px;
-                border: none;
-            }
-QListWidget::item:selected {
-                background-color: #0078d7;
-                color: white;
-                border-right: 5px solid #004080;
-                font-weight: bold;
-            }
-QListWidget::item:hover {
-                background-color: #e6f2ff;
-                color: #333;
-            }
+    background-color: #FFFFFF;
+    color: #1E1E1E;
+}
+
+QTableWidget {
+    background-color: #FFFFFF;
+    color: #1E1E1E;
+    gridline-color: #B0BEC5;
+    border-color: #B0BEC5;
+}
+
+QHeaderView::section {
+    background-color: #F5F7FA;
+    color: #606770;
+}
+
+QGroupBox#groupBox {
+    border-color: #B0BEC5;
+}
+
+QGroupBox#groupBox::title {
+    color: #1E1E1E;
+}

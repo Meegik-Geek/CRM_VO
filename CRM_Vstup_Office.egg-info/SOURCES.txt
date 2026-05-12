@@ -1,0 +1,5 @@
+setup.py
+CRM_Vstup_Office.egg-info/PKG-INFO
+CRM_Vstup_Office.egg-info/SOURCES.txt
+CRM_Vstup_Office.egg-info/dependency_links.txt
+CRM_Vstup_Office.egg-info/top_level.txt

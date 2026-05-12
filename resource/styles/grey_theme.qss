@@ -1,156 +1,291 @@
-QMainWindow {
-    background-color: #121212;
+/* === ТЕМНА ТЕМА (Тільки кольори) === */
+
+QMainWindow, QWidget#tableList {
+    background-color: #0F172A;
+    border: none;
 }
 
-QDialog {
-    background-color: #1F1F1F;
-}
-
-QWidget#rightPanel {
-    background-color: #1F1F1F;
+QDialog, QWidget#rightPanel {
+    background-color: #1E293B;
 }
 
 QLabel {
-    color: #FFFFFF;
-}
-
-QLabel#adminTitleLabel {
-    color: #FFFFFF;
+    color: #F8FAFC;
 }
 
 QLabel#errorLabel {
-    color: #EF5350;
+    color: #F87171;
 }
 
-QPushButton#iconButton:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+/* Кнопки */
+QPushButton {
+    background-color: #334155;
+    color: #F8FAFC;
 }
 
-QPushButton#iconButton:pressed {
-    background-color: rgba(255, 255, 255, 0.15);
+QPushButton:hover {
+    background-color: #475569;
+}
+
+QPushButton:disabled,
+QPushButton#greenButton:disabled,
+QPushButton#loginButton:disabled,
+QPushButton#printButton:disabled,
+QPushButton#editButton:disabled,
+QPushButton#cancelButton:disabled,
+QPushButton#clearButton:disabled,
+QPushButton#errorButton:disabled,
+QPushButton#drukButton:disabled,
+QPushButton#navButton:disabled,
+QPushButton#searchButton:disabled {
+    background-color: #111827;
+    color: #475569;
+    border: 1px solid #1E293B;
+}
+
+QPushButton#navButton, QPushButton#searchButton, QPushButton#logButton, 
+QPushButton#mainButton, QPushButton#previewButton {
+    background-color: #2563EB;
+    color: #FFFFFF;
+}
+
+QPushButton#navButton:hover, QPushButton#searchButton:hover {
+    background-color: #3B82F6;
+}
+
+QPushButton#clearButton, QPushButton#errorButton {
+    background-color: #991B1B;
+    color: #FFFFFF;
+}
+
+QPushButton#greenButton, QPushButton#loginButton, QPushButton#printButton {
+    background-color: #166534;
+    color: #FFFFFF;
+}
+
+QPushButton#greenButton:hover, QPushButton#loginButton:hover, QPushButton#printButton:hover {
+    background-color: #15803D;
+}
+
+QPushButton#cancelButton {
+    background-color: #7F1D1D;
+    color: #FCA5A5;
+}
+
+QPushButton#editButton {
+    background-color: #92400E;
+    color: #FFFFFF;
+}
+
+QPushButton#editButton:hover {
+    background-color: #B45309;
 }
 
 QPushButton#drukButton {
-    background-color: #424242;
-    color: #FFFFFF;
+    background-color: #334155;
+    color: #F8FAFC;
+    border-color: #475569;
 }
 
-QPushButton#drukButton:hover {
-    background-color: #616161;
+QPushButton#iconButton {
+    background-color: transparent;
 }
 
-QPushButton#drukButton:pressed {
-    background-color: #757575;
+QPushButton#iconButton:hover {
+    background-color: rgba(248, 250, 252, 0.08);
 }
 
-QLineEdit {
-    background-color: #2C2C2C;
-    color: #FFFFFF;
-    border-color: #4A4A4A;
+/* Поля вводу */
+QLineEdit, QComboBox, QTextEdit, QAbstractSpinBox, QTimeEdit, QDateEdit, QDateTimeEdit {
+    background-color: #1E293B;
+    border: 1px solid #334155;
+    color: #F8FAFC;
+    selection-background-color: #2563EB;
+    selection-color: #FFFFFF;
 }
 
-QLineEdit#usernameInput,
-QLineEdit#passwordInput,
-QLineEdit#inputField {
-    background-color: #2C2C2C;
-    color: #FFFFFF;
-    border-color: #4A4A4A;
+QTableWidget QLineEdit, QTableWidget QComboBox {
+    background-color: #1E293B;
+    color: #F8FAFC;
+    border: 1px solid #3B82F6;
 }
 
-QLineEdit:focus {
-    background-color: #2C2C2C;
+QComboBox QAbstractItemView {
+    background-color: #1E293B;
+    color: #F8FAFC;
+    selection-background-color: #2563EB;
+    selection-color: #FFFFFF;
+    outline: none;
+    border: 1px solid #334155;
 }
 
-QComboBox {
-    background-color: #2C2C2C;
-    color: #FFFFFF;
-    border-color: #4A4A4A;
+QComboBox::down-arrow {
+    border-color: #94A3B8;
 }
 
-QTextEdit {
-    background-color: #2C2C2C;
-    color: #FFFFFF;
-    border-color: #4A4A4A;
+QAbstractSpinBox::up-arrow, QAbstractSpinBox::down-arrow {
+    border-color: #94A3B8;
 }
 
-QListWidget#tableList {
-    background-color: #1F1F1F;
-    color: #FFFFFF;
+QLineEdit:focus, QComboBox:focus, QTextEdit:focus {
+    border: 1px solid #3B82F6;
 }
 
-QListWidget#tableList::item {
-    color: #FFFFFF;
+QLineEdit#searchInput {
+    background-color: #1E293B;
+    border: 1px solid #334155;
+    color: #F8FAFC;
 }
 
-QListWidget#tableList::item:selected {
-    background-color: #2979FF;
-    color: #FFFFFF;
-    border-left-color: #1565C0;
-}
-
-QListWidget#tableList::item:hover {
-    background-color: #2C2C2C;
-    color: #FFFFFF;
-}
-
-QListWidget#tableList::item[role="section"] {
-    background-color: #2C2C2C;
-    color: #B0B0B0;
-}
-
-QListWidget#navList {
-    background-color: #1F1F1F;
-    color: #FFFFFF;
-}
-
-QListWidget#navList::item {
-    color: #FFFFFF;
-}
-
-QListWidget#navList::item:selected {
-    background-color: #2979FF;
-    color: #FFFFFF;
-    border-left-color: #1565C0;
-}
-
-QListWidget#navList::item:hover {
-    background-color: #2C2C2C;
-    color: #FFFFFF;
-}
-
-QListWidget#navList::item[role="section"] {
-    background-color: #2C2C2C;
-    color: #B0B0B0;
-}
-
+/* Таблиці */
 QTableWidget {
-    background-color: #2C2C2C;
-    color: #FFFFFF;
-    border-color: #4A4A4A;
+    background-color: #1E293B;
+    alternate-background-color: #161E2E;
+    gridline-color: #334155;
+    border: 1px solid #334155;
+    color: #F8FAFC;
+    selection-background-color: #1E3A8A;
+    selection-color: #FFFFFF;
 }
 
-QTableWidget::item {
-    color: #FFFFFF;
+QTableWidget::item:alternate {
+    background-color: #161E2E;
 }
 
 QTableWidget::item:selected {
-    background-color: #2979FF;
+    background-color: #2563EB;
     color: #FFFFFF;
 }
 
 QHeaderView::section {
-    background-color: #2C2C2C;
-    color: #B0B0B0;
+    background-color: #1E293B;
+    color: #94A3B8;
+    border-bottom: 1px solid #334155;
+    border-right: 1px solid #334155;
 }
 
+QTableCornerButton::section {
+    background-color: #1E293B;
+    border: 1px solid #334155;
+}
+
+/* ScrollArea */
+QScrollArea {
+    background-color: transparent;
+}
+
+QWidget#formContainer {
+    background-color: transparent;
+}
+
+/* GroupBox */
 QGroupBox#groupBox {
-    border-color: #4A4A4A;
+    color: #F8FAFC;
+    border: 1px solid #334155;
+    border-radius: 8px;
 }
 
 QGroupBox#groupBox::title {
-    color: #FFFFFF;
+    color: #94A3B8;
+    font-weight: 600;
 }
 
-QSplitter::handle {
-    background-color: #4A4A4A;
+/* Списки */
+QListWidget {
+    background-color: #1E293B;
+    border: 1px solid #334155;
+    color: #F8FAFC;
+}
+
+QListWidget::item:hover {
+    background-color: #334155;
+}
+
+QListWidget::item:selected {
+    background-color: #2563EB;
+    color: #FFFFFF;
+    border-right: 4px solid #1E3A8A;
+}
+
+/* Контекстне меню */
+QMenu#contextMenu {
+    background-color: #1E293B;
+    color: #F8FAFC;
+    border: 1px solid #334155;
+}
+
+QMenu#contextMenu::item:selected {
+    background-color: #2563EB;
+}
+
+QMenu#contextMenu::separator {
+    background-color: #334155;
+}
+
+/* Скролбар - кольори темної теми */
+QScrollBar:vertical, QScrollBar:horizontal {
+    background-color: transparent;
+}
+
+QScrollBar::handle:vertical, QScrollBar::handle:horizontal {
+    background-color: #475569;
+}
+
+QScrollBar::handle:vertical:hover, QScrollBar::handle:horizontal:hover {
+    background-color: #64748B;
+}
+
+QScrollBar::handle:pressed {
+    background-color: #2563EB;
+}
+
+/* Чекбокси */
+QCheckBox {
+    color: #F8FAFC;
+}
+
+QCheckBox::indicator {
+    background-color: #1E293B;
+    border: 1px solid #334155;
+}
+
+QCheckBox::indicator:unchecked:hover {
+    border-color: #3B82F6;
+}
+
+QCheckBox::indicator:checked {
+    background-color: #2563EB;
+    border-color: #3B82F6;
+    image: url(resource/icons/check_white.png);
+}
+
+QCheckBox::indicator:disabled {
+    background-color: #0F172A;
+    border-color: #1E293B;
+}
+
+/* Чекбокси в таблицях для темної теми */
+QTableWidget::indicator:unchecked {
+    background-color: #1E293B;
+    border: 1px solid #334155;
+}
+
+QTableWidget::indicator:checked {
+    background-color: #2563EB;
+    border: 1px solid #3B82F6;
+    image: url(resource/icons/check_white.png);
+}
+
+/* Стилі для таблиці користувачів у темній темі */
+#usersTable QLineEdit {
+    background-color: #1E293B;
+    color: #F8FAFC;
+    border: 1px solid #334155;
+}
+
+#usersTable QLineEdit:focus {
+    border: 1px solid #3B82F6;
+}
+QLabel#generalDescLabel, QLabel#reportDescription {
+    color: #94A3B8;
 }

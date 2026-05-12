@@ -4,9 +4,19 @@ from PyQt5.QtGui import QFont, QColor
 
 class ToastNotification(QWidget):
     """Кастомне спливаюче сповіщення (Toast)."""
+    _active_toast = None  # Статична змінна для відстеження активного сповіщення
     
     def __init__(self, parent, message, color="#333", icon="ℹ", duration=3000, position='top'):
         super().__init__(parent)
+        
+        # Закриваємо попереднє сповіщення, якщо воно є
+        if ToastNotification._active_toast:
+            try:
+                ToastNotification._active_toast.hide_notification()
+            except:
+                pass
+        ToastNotification._active_toast = self
+
         self.position = position
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.ToolTip)
         self.setAttribute(Qt.WA_TranslucentBackground)
@@ -14,42 +24,41 @@ class ToastNotification(QWidget):
         # Основний контейнер
         self.container = QWidget(self)
         self.container.setObjectName("toastContainer")
-        # Перетворення кольору в RGBA для прозорості (90%)
-        rgba = self._hex_to_rgba(color, 0.9)
+        self.container.setMinimumHeight(40) # Зменшена висота
+        
+        # Перетворення кольору в RGBA для прозорості (80%)
+        rgba = self._hex_to_rgba(color, 0.8)
         
         self.container.setStyleSheet(f"""
             QWidget#toastContainer {{
                 background-color: {rgba};
-               
+                border-bottom: 1px solid rgba(0,0,0,0.1);
             }}
             QLabel {{
                 color: white;
                 font-size: 12px;
                 font-weight: 500;
-                
             }}
         """)
         
         layout = QHBoxLayout(self.container)
-        layout.setContentsMargins(40, 0, 40, 0)
-        #layout.setAlignment(Qt.AlignCenter) # Центрування всього вмісту
-        #layout.setSpacing(15)
+        layout.setContentsMargins(40, 5, 40, 5) # Мінімальні відступи
+        layout.setSpacing(12)
         
         # Іконка
         self.icon_label = QLabel(icon)
         icon_font = QFont()
-        icon_font.setPointSize(14) # Трохи зменшим для кращого вписування
+        icon_font.setPointSize(13)
         icon_font.setBold(True)
         self.icon_label.setFont(icon_font)
-        self.icon_label.setFixedWidth(20) # Фіксована ширина
-        self.icon_label.setFixedHeight(20) # ТУТ: Фіксована висота, щоб не розпирало банер
+        self.icon_label.setFixedWidth(25)
         self.icon_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.icon_label)
         
         # Повідомлення
         self.message_label = QLabel(message)
         self.message_label.setWordWrap(True)
-        self.message_label.setAlignment(Qt.AlignCenter) # Центрування самого тексту
+        self.message_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(self.message_label)
         
         # Ефект прозорості для анімації
@@ -63,10 +72,11 @@ class ToastNotification(QWidget):
         
         # Анімація
         self.animation = QPropertyAnimation(self.opacity_effect, b"opacity")
-        self.animation.setDuration(500)
+        self.animation.setDuration(300)
         self.animation.setEasingCurve(QEasingCurve.OutCubic)
         
         self.main_layout = QHBoxLayout(self)
+        self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.addWidget(self.container)
         
         self.duration = duration
@@ -81,9 +91,7 @@ class ToastNotification(QWidget):
     def show_notification(self):
         """Відображає сповіщення по ширині right_panel під заголовком ГОЛОВНОГО вікна."""
         if self.parent_widget:
-            # Шукаємо саме головне вікно (QMainWindow) додатка для Y-координати
             main_window = self.parent_widget.window()
-            # Йдемо вгору, поки не знайдемо QMainWindow або поки є батьки
             while main_window.parentWidget():
                 main_window = main_window.parentWidget().window()
                 if main_window.inherits("QMainWindow"):
@@ -91,28 +99,23 @@ class ToastNotification(QWidget):
             
             window_pos = main_window.mapToGlobal(QPoint(0, 0))
             
-            # Знаходимо "робочу область" (right_panel або саму сторінку)
-            # Якщо parent_widget - це діалог, беремо його батька як орієнтир для ширини
             target_area = self.parent_widget
             if target_area.inherits("QDialog") and target_area.parentWidget():
                 target_area = target_area.parentWidget()
             
-            # Глобальна геометрія цільової області для X та ширини
             area_rect = target_area.rect()
             area_pos = target_area.mapToGlobal(QPoint(0, 0))
             
-            # Встановлюємо ширину як у правої панелі
             self.setFixedWidth(area_rect.width())
             self.adjustSize() 
             
             x = area_pos.x()
             
             if self.position == 'bottom':
-                # Знизу вікна (над нижньою межею)
                 y = window_pos.y() + main_window.height() - self.height() - 40
             else:
-                # Зверху вікна (під заголовком)
-                y = window_pos.y() - 8 
+                # Зверху вікна
+                y = window_pos.y() 
             
             self.move(x, y)
         
@@ -127,10 +130,27 @@ class ToastNotification(QWidget):
 
     def hide_notification(self):
         """Ховає сповіщення з анімацією."""
-        self.animation.setStartValue(1.0)
+        if self.animation.state() == QPropertyAnimation.Running and self.animation.endValue() == 0.0:
+            return # Вже ховається
+            
+        self.animation.stop()
+        self.animation.setStartValue(self.opacity_effect.opacity())
         self.animation.setEndValue(0.0)
-        self.animation.finished.connect(self.deleteLater)
+        
+        # Відключаємо попередні підключення, щоб уникнути подвійного виклику deleteLater
+        try:
+            self.animation.finished.disconnect()
+        except:
+            pass
+            
+        self.animation.finished.connect(self.on_hidden)
         self.animation.start()
+
+    def on_hidden(self):
+        """Викликається після завершення анімації зникнення."""
+        if ToastNotification._active_toast == self:
+            ToastNotification._active_toast = None
+        self.deleteLater()
 
 def show_success(parent, message, title=None, position='top'):
     """Відображає сучасне сповіщення про успіх."""

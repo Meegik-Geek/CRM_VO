@@ -76,7 +76,7 @@ class ListInputStudent(QWidget):
         self.no_results_label.hide()
         layout.addWidget(self.no_results_label)
 
-        self.table = QTableWidget(self)
+        self.table = QTableWidget(self); self.table.verticalHeader().setDefaultSectionSize(45)
         self.table.setObjectName("tableWidget")
         self.table.setColumnCount(10)
         headers = [

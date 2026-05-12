@@ -325,9 +325,9 @@ class LoginDialog(QDialog):
 
     def init_ui(self):
         self.setWindowTitle("Вхід")
-        self.setFixedSize(300, 150)
+        self.setMinimumSize(320, 180)
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(10, 10, 10, 10)
+        layout.setContentsMargins(15, 15, 15, 15)
 
         self.username_input = QLineEdit(self)
         self.username_input.setObjectName("usernameInput")
@@ -346,7 +346,7 @@ class LoginDialog(QDialog):
 
         self.login_button = QPushButton("Вхід", self)
         self.login_button.setObjectName("loginButton")
-        self.login_button.setFixedSize(150, 30)
+        self.login_button.setMinimumSize(160, 40)
         self.login_button.setCursor(QCursor(Qt.PointingHandCursor))
         self.login_button.clicked.connect(self.authenticate_user)
         layout.addWidget(self.login_button, alignment=Qt.AlignCenter)

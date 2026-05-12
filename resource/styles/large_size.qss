@@ -1,18 +1,9 @@
+/* === ВЕЛИКИЙ РОЗМІР (Тільки розміри) === */
+
 QLabel {
     font-size: 18px;
 }
-QPushButton#searchButton {
-    font-size: 17px;
-    height: 17px;
-} 
-QPushButton#clearButton {
-    font-size: 17px;
-    height: 17px;
-}
-QPushButton#cancelButton {
-    font-size: 17px;
-    height: 17px;
-}
+
 QLabel#titleLabel {
     font-size: 25px;
 }
@@ -27,91 +18,100 @@ QLabel#errorLabel {
 
 QPushButton {
     font-size: 18px;
-    height: 28px;
+    height: 40px;
+}
+
+QPushButton#searchButton, QPushButton#clearButton, QPushButton#cancelButton {
+    font-size: 17px;
+    height: 40px;
 }
 
 QPushButton#logButton {
     font-size: 17px;
-    height: 32px;
+    height: 40px;
 }
 
 QPushButton#iconButton {
-    height: 32px;
-}
-
-QPushButton#loginButton {
-    font-size: 18px;
     height: 40px;
 }
 
-QPushButton#drukButton {
-    font-size: 18px;
-    height: 40px;
-}
-
-QPushButton#errorButton {
+QPushButton#loginButton, QPushButton#drukButton, QPushButton#errorButton,
+QPushButton#greenButton, QPushButton#printButton, QPushButton#editButton {
     font-size: 18px;
     height: 40px;
 }
 
 QLineEdit {
     font-size: 18px;
-    height: 24px;
+    height: 40px;
 }
 
 QComboBox {
     font-size: 18px;
-    height: 19px;
+    height: 40px;
 }
 
 QTextEdit {
     font-size: 17px;
 }
 
-QListWidget#tableList {
+QListWidget {
     font-size: 17px;
 }
 
-QListWidget#tableList::item {
-    padding: 12px 16px;
-}
-
-QListWidget#tableList::item[role="section"] {
-    font-size: 17px;
-    padding: 10px;
-}
-
-QListWidget#navList {
-    font-size: 17px;
-}
-
-QListWidget#navList::item {
-    padding: 12px 16px;
-}
-
-QListWidget#navList::item[role="section"] {
-    font-size: 17px;
-    padding: 10px;
+QListWidget::item[role="section"] {
+    font-size: 15px;
 }
 
 QTableWidget {
     font-size: 17px;
 }
 
-
-
 QHeaderView::section {
     font-size: 17px;
-    padding: 8px;
+    padding: 6px;
+}
+
+QTableWidget QLineEdit {
+    font-size: 16px;
+    height: 35px;
+    margin: 2px;
+}
+
+QTableWidget QPushButton {
+    font-size: 15px;
+    height: 35px;
+    margin: 2px;
 }
 
 QGroupBox#groupBox {
     font-size: 16px;
 }
 
-QSplitter::handle {
-    width: 6px;
+QMenu#contextMenu {
+    font-size: 18px;
 }
-#message_label {
-    font-size: 19px;
+
+QCheckBox {
+    font-size: 18px;
+}
+
+#usersTable QLineEdit {
+    font-size: 16px;
+    height: 35px;
+    margin: 4px;
+}
+
+#usersTable QPushButton {
+    font-size: 15px;
+    height: 35px;
+    margin: 4px 10px;
+}
+
+QLabel#generalDescLabel {
+    font-size: 18px;
+}
+
+QLabel#reportDescription {
+    font-size: 17px;
 }
