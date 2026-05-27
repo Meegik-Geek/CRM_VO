@@ -10,6 +10,81 @@ from utils.logger import log_error, log_info
 from utils.notifications import show_error, show_success
 import re
 
+class DateLineEdit(QLineEdit):
+    def __init__(self, width=None, parent=None):
+        if isinstance(width, QWidget):
+            parent = width
+            width = None
+        super().__init__(parent)
+        if width is not None:
+            self.setFixedWidth(width)
+        self.setPlaceholderText("ДД.ММ.РРРР")
+        self.setStyleSheet("letter-spacing: 2px;")
+        
+    def focusInEvent(self, event):
+        if not self.text() or self.text() == "__.__.____":
+            self.setInputMask("99.99.9999;_")
+            self.setCursorPosition(0)
+        super().focusInEvent(event)
+        
+    def focusOutEvent(self, event):
+        cleaned = self.text().replace(".", "").replace("_", "").strip()
+        if not cleaned:
+            self.setInputMask("")
+            self.setPlaceholderText("ДД.ММ.РРРР")
+        super().focusOutEvent(event)
+
+    def setText(self, text):
+        if text and text.strip():
+            self.setInputMask("99.99.9999;_")
+            super().setText(text)
+        else:
+            self.setInputMask("")
+            super().setText("")
+
+class PhoneLineEdit(QLineEdit):
+    def __init__(self, width=None, parent=None):
+        if isinstance(width, QWidget):
+            parent = width
+            width = None
+        super().__init__(parent)
+        if width is not None:
+            self.setFixedWidth(width)
+        self.setPlaceholderText("+380 (ХХ) ХХХ-ХХ-ХХ")
+        self.setStyleSheet("letter-spacing: 2px;")
+        
+    def focusInEvent(self, event):
+        if not self.text() or self.text() == "+380 (__) ___-__-__":
+            self.setInputMask("+38\\0 (99) 999-99-99;_")
+            self.setCursorPosition(6)
+        super().focusInEvent(event)
+        
+    def focusOutEvent(self, event):
+        cleaned = self.text().replace("+380", "").replace("(", "").replace(")", "").replace("-", "").replace("_", "").strip()
+        if not cleaned:
+            self.setInputMask("")
+            self.setPlaceholderText("+380 (ХХ) ХХХ-ХХ-ХХ")
+        super().focusOutEvent(event)
+
+    def setText(self, text):
+        if text and text.strip() and text != "+380 (__) ___-__-__":
+            raw_digits = "".join(c for c in text if c.isdigit())
+            if len(raw_digits) == 12 and raw_digits.startswith("380"):
+                formatted = f"+380 ({raw_digits[3:5]}) {raw_digits[5:8]}-{raw_digits[8:10]}-{raw_digits[10:12]}"
+                self.setInputMask("+38\\0 (99) 999-99-99;_")
+                super().setText(formatted)
+                return
+            elif len(raw_digits) == 9:
+                formatted = f"+380 ({raw_digits[0:2]}) {raw_digits[2:5]}-{raw_digits[5:7]}-{raw_digits[7:9]}"
+                self.setInputMask("+38\\0 (99) 999-99-99;_")
+                super().setText(formatted)
+                return
+            self.setInputMask("+38\\0 (99) 999-99-99;_")
+            super().setText(text)
+        else:
+            self.setInputMask("")
+            super().setText("")
+
 class InputApplicantDen(QWidget):
     def __init__(self):
         super(InputApplicantDen, self).__init__()
@@ -99,11 +174,8 @@ class InputApplicantDen(QWidget):
         self.cert_number_input.setPlaceholderText("АА №12345678")
         # self.cert_number_input.textEdited.connect(self.validate_cert_number_input)
         
-        self.cert_issue_date_input = self.create_input_field(validator=QRegExpValidator(QRegExp(r"^\d{2}\.\d{2}\.\d{4}$|^$"), self))
+        self.cert_issue_date_input = DateLineEdit(self)
         self.cert_issue_date_input.setObjectName("inputField")
-        self.cert_issue_date_input.textChanged.connect(lambda: self.format_date_input(self.cert_issue_date_input))
-        self.cert_issue_date_input.setPlaceholderText("ДД.ММ.РРРР")
-        self.cert_issue_date_input.setStyleSheet("letter-spacing: 2px;")
         cert_layout.addWidget(QLabel("Номер свідоцтва <span style='color: red;'>*</span>:"))
         cert_layout.addWidget(self.cert_number_input)
         cert_layout.addWidget(QLabel("Дата видачі свідоцтва:"))
@@ -125,19 +197,13 @@ class InputApplicantDen(QWidget):
 
         # Контакти та громадянство
         contact_layout = QHBoxLayout(); contact_layout.setContentsMargins(0, 0, 0, 0); contact_layout.setSpacing(10)
-        self.phone_input = self.create_input_field()
+        self.phone_input = PhoneLineEdit(self)
         self.phone_input.setObjectName("inputField")
-        self.phone_input.setInputMask("+380#########")
-        self.phone_input.setStyleSheet("letter-spacing: 2px;")
-        self.phone_input.setPlaceholderText("+380123456789")
         self.citizenship_input = self.create_input_field()
         self.citizenship_input.setObjectName("inputField")
         self.citizenship_input.setText("України")
-        self.date_birth_input = self.create_input_field(validator=QRegExpValidator(QRegExp(r"^\d{2}\.\d{2}\.\d{4}$|^$"), self))
+        self.date_birth_input = DateLineEdit(self)
         self.date_birth_input.setObjectName("inputField")
-        self.date_birth_input.setStyleSheet("letter-spacing: 2px;")
-        self.date_birth_input.textChanged.connect(lambda: self.format_date_input(self.date_birth_input))
-        self.date_birth_input.setPlaceholderText("ДД.ММ.РРРР")
         contact_layout.addWidget(QLabel("Телефон:"))
         contact_layout.addWidget(self.phone_input)
         contact_layout.addWidget(QLabel("Громадянство:"))
@@ -154,11 +220,8 @@ class InputApplicantDen(QWidget):
         self.issued_by_input = self.create_input_field()
         self.issued_by_input.setObjectName("inputField")
         self.issued_by_input.setPlaceholderText("Напр., 071 або МВС України")
-        self.issue_date_input = self.create_input_field(150, validator=QRegExpValidator(QRegExp(r"^\d{2}\.\d{2}\.\d{4}$|^$"), self))
+        self.issue_date_input = DateLineEdit(150, self)
         self.issue_date_input.setObjectName("inputField")
-        self.issue_date_input.textChanged.connect(lambda: self.format_date_input(self.issue_date_input))
-        self.issue_date_input.setStyleSheet("letter-spacing: 2px;")
-        self.issue_date_input.setPlaceholderText("ДД.ММ.РРРР")
         self.id_code_input = self.create_input_field(150, validator=QRegExpValidator(QRegExp(r"^\d{10}$|^$"), self))
         self.id_code_input.setObjectName("inputField")
         self.id_code_input.setPlaceholderText("10 цифр")
@@ -201,11 +264,8 @@ class InputApplicantDen(QWidget):
         self.father_job_input.setPlaceholderText("Місце роботи, посада")
         father_layout.addWidget(self.father_job_input)
         father_layout.addWidget(QLabel("Телефон батька:"))
-        self.father_phone_input = self.create_input_field()
+        self.father_phone_input = PhoneLineEdit(self)
         self.father_phone_input.setObjectName("inputField")
-        self.father_phone_input.setInputMask("+380#########")
-        self.father_phone_input.setStyleSheet("letter-spacing: 2px;")
-        self.father_phone_input.setPlaceholderText("+380993456789")
         father_layout.addWidget(self.father_phone_input)
 
         mother_layout = QVBoxLayout()
@@ -230,11 +290,8 @@ class InputApplicantDen(QWidget):
         self.mother_job_input.setPlaceholderText("Місце роботи, посада")
         mother_layout.addWidget(self.mother_job_input)
         mother_layout.addWidget(QLabel("Телефон матері:"))
-        self.mother_phone_input = self.create_input_field()
+        self.mother_phone_input = PhoneLineEdit(self)
         self.mother_phone_input.setObjectName("inputField")
-        self.mother_phone_input.setInputMask("+380#########")
-        self.mother_phone_input.setStyleSheet("letter-spacing: 2px;")
-        self.mother_phone_input.setPlaceholderText("+380993456789")
         mother_layout.addWidget(self.mother_phone_input)
 
         parents_layout.addLayout(father_layout)

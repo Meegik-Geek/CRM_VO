@@ -10,6 +10,38 @@ from utils.logger import log_error, log_info
 from utils.notifications import show_error, show_success
 import re
 
+class DateLineEdit(QLineEdit):
+    def __init__(self, width=None, parent=None):
+        if isinstance(width, QWidget):
+            parent = width
+            width = None
+        super().__init__(parent)
+        if width is not None:
+            self.setFixedWidth(width)
+        self.setPlaceholderText("ДД.ММ.РРРР")
+        self.setStyleSheet("letter-spacing: 2px;")
+        
+    def focusInEvent(self, event):
+        if not self.text() or self.text() == "__.__.____":
+            self.setInputMask("99.99.9999;_")
+            self.setCursorPosition(0)
+        super().focusInEvent(event)
+        
+    def focusOutEvent(self, event):
+        cleaned = self.text().replace(".", "").replace("_", "").strip()
+        if not cleaned:
+            self.setInputMask("")
+            self.setPlaceholderText("ДД.ММ.РРРР")
+        super().focusOutEvent(event)
+
+    def setText(self, text):
+        if text and text.strip():
+            self.setInputMask("99.99.9999;_")
+            super().setText(text)
+        else:
+            self.setInputMask("")
+            super().setText("")
+
 class InputSpravaDen(QWidget):
     def __init__(self):
         super(InputSpravaDen, self).__init__()
@@ -94,10 +126,8 @@ class InputSpravaDen(QWidget):
         self.name_specialnosti_input.currentIndexChanged.connect(self.update_kod_galuzi)
         sprava_form_layout.addRow("Назва спеціальності:", self.name_specialnosti_input)
 
-        self.date_sprava_input = self.create_input_field("Дата створення справи", validator=QRegExpValidator(QRegExp(r"^\d{2}\.\d{2}\.\d{4}$|^$"), self))
+        self.date_sprava_input = DateLineEdit(self)
         self.date_sprava_input.setObjectName("inputField")
-        self.date_sprava_input.setStyleSheet("letter-spacing: 2px;")
-        self.date_sprava_input.textChanged.connect(lambda: self.format_date_input(self.date_sprava_input))
         self.date_sprava_input.setText(QDate.currentDate().toString("dd.MM.yyyy"))
         sprava_form_layout.addRow("Дата справи <span style='color: red;'>*</span>:", self.date_sprava_input)
 

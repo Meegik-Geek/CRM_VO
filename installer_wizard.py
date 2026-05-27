@@ -107,12 +107,21 @@ class InstallWorker(QThread):
                     raise Exception(last_error_msg or "Не вдалося встановити підключення до PostgreSQL")
 
                 conn.autocommit = True
+                data_dir = ""
                 with conn.cursor() as cur:
                     cur.execute(sql.SQL("SELECT 1 FROM pg_database WHERE datname = %s"), [self.config['db_name']])
                     if not cur.fetchone():
                         self.log.emit(f"Створення бази даних {self.config['db_name']}...")
                         cur.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(self.config['db_name'])))
+                    
+                    # Отримуємо шлях до папки даних
+                    cur.execute("SHOW data_directory;")
+                    data_dir = cur.fetchone()[0]
                 conn.close()
+
+                # Налаштовуємо віддалений доступ
+                if data_dir:
+                    self.configure_postgres_remote(data_dir)
 
                 # 3. Розгортання схеми (Тільки для сервера!)
                 self.progress.emit(60)
@@ -207,6 +216,67 @@ class InstallWorker(QThread):
             
             self.log.emit(f"❌ ПОМИЛКА: {error_text}")
             self.finished.emit(False, error_text)
+
+    def configure_postgres_remote(self, data_dir):
+        """Налаштовує віддалений доступ до PostgreSQL."""
+        try:
+            self.log.emit("Налаштування віддаленого доступу до бази даних...")
+            
+            # 1. Windows Firewall
+            port = self.config['db_port']
+            fw_cmd = f'powershell -Command "New-NetFirewallRule -DisplayName \'PostgreSQL CRM\' -Direction Inbound -LocalPort {port} -Protocol TCP -Action Allow"'
+            subprocess.run(fw_cmd, shell=True, capture_output=True)
+            self.log.emit(f"✅ Порт {port} відкрито в Брандмауері.")
+
+            # 2. postgresql.conf
+            pg_conf_path = os.path.join(data_dir, "postgresql.conf")
+            if os.path.exists(pg_conf_path):
+                with open(pg_conf_path, "r", encoding="utf-8", errors="ignore") as f:
+                    content = f.read()
+                
+                if "listen_addresses = '*'" not in content:
+                    # Шукаємо закоментований або існуючий рядок і замінюємо
+                    import re
+                    if re.search(r"^#?listen_addresses\s*=", content, re.MULTILINE):
+                        content = re.sub(r"^#?listen_addresses\s*=.*", "listen_addresses = '*'", content, flags=re.MULTILINE)
+                    else:
+                        content += "\nlisten_addresses = '*'\n"
+                    
+                    with open(pg_conf_path, "w", encoding="utf-8") as f:
+                        f.write(content)
+                    self.log.emit("✅ Увімкнено прослуховування всіх адрес у postgresql.conf")
+
+            # 3. pg_hba.conf
+            hba_path = os.path.join(data_dir, "pg_hba.conf")
+            if os.path.exists(hba_path):
+                with open(hba_path, "r", encoding="utf-8", errors="ignore") as f:
+                    hba_content = f.read()
+                
+                rule = "\nhost    all             all             0.0.0.0/0               scram-sha-256\n"
+                if "0.0.0.0/0" not in hba_content:
+                    with open(hba_path, "a", encoding="utf-8") as f:
+                        f.write(rule)
+                    self.log.emit("✅ Додано правило доступу 0.0.0.0/0 (scram-sha-256) у pg_hba.conf")
+
+            # 4. Перезапуск служби
+            self.log.emit("Перезапуск служби PostgreSQL для застосування налаштувань...")
+            # Намагаємось знайти ім'я служби через sc
+            find_service = subprocess.run('sc query type= service state= all | findstr /i "postgresql"', shell=True, capture_output=True, text=True)
+            service_name = ""
+            for line in find_service.stdout.splitlines():
+                if "SERVICE_NAME" in line:
+                    service_name = line.split(":")[1].strip()
+                    break
+            
+            if service_name:
+                subprocess.run(f"net stop {service_name}", shell=True, capture_output=True)
+                subprocess.run(f"net start {service_name}", shell=True, capture_output=True)
+                self.log.emit(f"✅ Службу {service_name} перезапущено.")
+            else:
+                self.log.emit("⚠️ Не вдалося знайти ім'я служби для автоматичного перезапуску. Будь ласка, перезапустіть PostgreSQL вручну.")
+
+        except Exception as e:
+            self.log.emit(f"⚠️ Попередження (Remote Config): {str(e)}")
 
 class AdminSetupPage(QWizardPage):
     def __init__(self):
